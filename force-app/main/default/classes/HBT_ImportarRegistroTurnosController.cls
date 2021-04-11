@@ -18,7 +18,7 @@ global class HBT_ImportarRegistroTurnosController {
     private list <registroAlmacenar> listaRegistros {get;set;}
     public list <registroAlmacenar> listaRegistrosError {get;set;}
     private list <registroAlmacenar> listaRegistrosTemp {get;set;}
-    private  Map <String,HBT_Asociacion_Empleado_Frente__c> listaEmpleados{get;set;}
+    private Map <String,HBT_Asociacion_Empleado_Frente__c> listaEmpleados{get;set;}
     
     //Lista para almacenar los id de los registros a modificar y consultar en la bd que sí existan
     private list <String> idRegistrosModificar {get;set;}
@@ -38,6 +38,10 @@ global class HBT_ImportarRegistroTurnosController {
     private boolean esFestivoManana;
     private Decimal duracionTurno;
     private Decimal cantidadHorasTrabajadas;
+
+    // soporte horas fijas
+    private static Integer inicioHoraNocturna = 21;
+    private static Integer inicioHoraDiurna = 6;
     
     //método constructor
     public HBT_ImportarRegistroTurnosController(){
@@ -49,7 +53,6 @@ global class HBT_ImportarRegistroTurnosController {
         listaRegistrosTemp = new list <registroAlmacenar>();
         idRegistrosModificar = new list <String>();
         diasFestivos = new Map <String, Boolean>();
-        
     }
     
     /*Método que se encarga de obtener los anios*/
@@ -438,6 +441,7 @@ global class HBT_ImportarRegistroTurnosController {
         
         return fechaRedondeo;
     }
+
     //Método que valida que los empleados existan en el sistema
     private void validarRegistros(){
         habilitarBoton = false;
@@ -522,118 +526,124 @@ global class HBT_ImportarRegistroTurnosController {
             habilitarBoton = false; 
             mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.ERROR,'El contenido del archivo contiene información que no es valida para realizar el cargue. Verifique el detalle de los errores en el botón "Obtener Archivo".'));
         }
-       
     }
     
     /**
     * Método para generar archivo .xls de errores encontrados al cargar información
      */
     public PageReference generarArchivo(){
-        
         contentType = 'application/vnd.ms-excel#ErroresCargue_'+obtenerFechaLocal(Datetime.now())+'.xls';
         PageReference pagRef = Page.HBT_ReporteErroresCargueTurno;
         return pagRef;
-        
     }
     
-    //Método que realiza el calculo y almacenamiento de las horas extras de los turnos reportados
+    /**
+     * Método que realiza el calculo y almacenamiento de las horas extras de los turnos reportados
+     */
     public void guardarRegistros(){
         system.debug('nombreArchivo '+nombreArchivo);
+        // creacion nombre archvico
         HBT_Historico_Cargue_Archivos__c historico = new HBT_Historico_Cargue_Archivos__c();
         historico.nombre_archivo__c	 = nombreArchivo + '/' +obtenerFechaLocal(Datetime.now());
-        
         insert historico;
         
+        // soporte para errores
         mensajesError = new List<HBT_MensajesPagina>();
-        inicioRecargoNocturno = time.newInstance(21, 00, 00, 00);
+
+        // hora de inicio para recargo nocturno
+        inicioRecargoNocturno = time.newInstance(inicioHoraNocturna, 00, 00, 00);
         List<HBT_Registro_Turnos__c> listaTurnos = new List<HBT_Registro_Turnos__c>();
-        HBT_Asociacion_Empleado_Frente__c empleadosTemp = new HBT_Asociacion_Empleado_Frente__c();
-        if(listaRegistros.size() > 0){
-            for(registroAlmacenar r : listaRegistros){
-                empleadosTemp = listaEmpleados.get(r.identificacion);
-                HBT_Registro_Turnos__c turno = new HBT_Registro_Turnos__c();
-                turno.Historico__c = historico.id;
-                turno.Asociacion_Empleado__c = empleadosTemp.id;
-                turno.Empleado__c = empleadosTemp.Empleado__r.id;
-                string dia = '';
-                system.debug('fech cTa' + r.fechaIngreso);
-               	dia = obtenerDia(r.fechaIngreso);
-                
-                system.debug('fecha ingreso: '+r.fechaIngreso);
-                system.debug('fecha salida: '+r.fechaSalida);
-                turno.Fecha_Registro__c = r.fechaIngreso.DateGMT();
-                turno.Fecha_Entrada_Registrada__c = r.fechaIngreso;
-                turno.fecha_Salida_Registrada__c = r.fechaSalida;
-                
-                if(diasFestivos.size() == 0){
-                    diasFestivos = HBT_Festivos.DiasFestivos(r.fechaIngreso.yearGMT());
-                }
-                esNocturno = obtenerSiEsNocturno(r.fechaIngreso);
-                if(dia == 'Sat'){
-                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c;
-                }else{
-                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno__c;
-                    
-                }
-                
-                if(r.esVacio){
-                    system.debug('se carga jornada normal, vienen horarios en blanco');
-                    turno.Duracion__c = duracionTurno;
-                    turno.esFestivo__c = false;
-                    turno.esNocturno__c = false;
-                    turno.Horas_Recargo_Nocturno__c = 0;
-                    turno.Hora_Extra_Nocturna__c = 0;
-                    turno.Hora_Recargo_Nocturno_Festivo__c = 0;
-                    turno.Hora_Extra_Festiva_Nocturna__c = 0;
-                    turno.Hora_Festiva_Dominical__c = 0;
-                    turno.Hora_Extra_Diurna__c = 0;
-                    turno.Hora_Extra_Festiva_Diurnas__c = 0;
-                    listaTurnos.add(turno);
-                    system.debug('tunro basico '+ listaTurnos);
-                }else{
-                    
-                    esFestivo = obtenerFestivo(turno.Fecha_Registro__c);
-                    if(!esFestivo && dia=='Sun'){
-                        esFestivo = true;
-                    }
-                    esFestivoManana = obtenerFestivo(turno.Fecha_Registro__c.addDays(1));
-                    string diaManana = obtenerDia(r.fechaIngreso.addDays(1));
-                    IF(!esFestivoManana &&  diaManana == 'Sun'){
-                        esFestivoManana = true;
-                    }
-                    if(esFestivo){
-                        duracionTurno= 8;
-                    }
-                    cantidadHorasTrabajadas = obtenerTiempoHoras(r.fechaIngreso, r.fechaSalida);
-                    
-                    system.debug('/***************************************/');
-                    system.debug('nocturno '+esnocturno);
-                    system.debug('dia' + dia);
-                    system.debug('festivo: '+esFestivo);
-                    system.debug('diaManana: ' +diaManana);
-                    system.debug('festivo mañana '+esFestivoManana);
-                    system.debug('duracion turno: '+duracionTurno);
-                    system.debug('cantidad horas trabajadas: '+cantidadHorasTrabajadas);
-                    system.debug('/***************************************/');
-                    
-                    turno.Duracion__c = cantidadHorasTrabajadas;
-                    turno.Horas_Recargo_Nocturno__c = obtenerRecargoNocturno(r.fechaIngreso);
-                    turno.Hora_Extra_Nocturna__c = obtenerExtraNocturna(r.fechaIngreso,r.fechaSalida,dia);
-                    //  turno.Hora_Recargo_Nocturno_Festivo__c = obtenerRecargoNocturnoFestivo(r.fechaIngreso);
-                    turno.Hora_Extra_Festiva_Nocturna__c = obtenerExtraFestivaNocturna(r.fechaIngreso,r.fechaSalida);
-                    turno.Hora_Festiva_Dominical__c = obtenerFestivaDominical(r.fechaIngreso);
-                   
-                    turno.Hora_Extra_Diurna__c = obtenerExtraDiurna(r.fechaSalida, dia, r.fechaIngreso);
-                    turno.Hora_Extra_Festiva_Diurnas__c = obtenerExtraFestivaDiurna(r.fechaIngreso,r.fechaSalida);
-                    system.debug('turnos: '+turno);
-                    listaTurnos.add(turno);
-                }
-                
+
+        for(registroAlmacenar registro : listaRegistros){
+            // identifica al empleado y su frente de trabajo
+            empleadosTemp = listaEmpleados.get(registro.identificacion);
+            
+            // guarda al empleado y otra informacion en objeto turno
+            HBT_Registro_Turnos__c turno = new HBT_Registro_Turnos__c();
+            turno.Historico__c = historico.id;
+            turno.Asociacion_Empleado__c = empleadosTemp.id;
+            turno.Empleado__c = empleadosTemp.Empleado__r.id;
+
+            // impresión fecha de entrada y salida
+            system.debug('fecha ingreso: '+registro.fechaIngreso);
+            system.debug('fecha salida: '+registro.fechaSalida);
+
+            // guarda fechas de registro, entrada y salida en turno
+            turno.Fecha_Registro__c = registro.fechaIngreso.DateGMT();
+            turno.Fecha_Entrada_Registrada__c = registro.fechaIngreso;
+            turno.fecha_Salida_Registrada__c = registro.fechaSalida;
+            
+            // inicializa lista de festivos si aún esta vacía
+            if(diasFestivos.size() == 0){
+                diasFestivos = HBT_Festivos.DiasFestivos(registro.fechaIngreso.yearGMT());
             }
+            
+            string dia = obtenerDia(registro.fechaIngreso);            
+            if(dia == 'Sat'){
+                duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c;
+            }else{
+                duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno__c;
+            }
+
+            // booleano que guarda si el registro tiene horas nocturnas
+            esNocturno = obtenerSiEsNocturno(registro.fechaIngreso);
+            
+            if(registro.esVacio){
+                // caso en que registro esté vacío se guardan todas las horas extras vacías
+                system.debug('se carga jornada normal, vienen horarios en blanco');
+                turno.Duracion__c = duracionTurno;
+                turno.esFestivo__c = false;
+                turno.esNocturno__c = false;
+                turno.Horas_Recargo_Nocturno__c = 0;
+                turno.Hora_Extra_Nocturna__c = 0;
+                turno.Hora_Recargo_Nocturno_Festivo__c = 0;
+                turno.Hora_Extra_Festiva_Nocturna__c = 0;
+                turno.Hora_Festiva_Dominical__c = 0;
+                turno.Hora_Extra_Diurna__c = 0;
+                turno.Hora_Extra_Festiva_Diurnas__c = 0;
+                listaTurnos.add(turno);
+                system.debug('tunro basico '+ listaTurnos);
+            }else{
+                
+                esFestivo = obtenerFestivo(turno.Fecha_Registro__c);
+                if(!esFestivo && dia=='Sun'){
+                    esFestivo = true;
+                }
+                esFestivoManana = obtenerFestivo(turno.Fecha_Registro__c.addDays(1));
+                string diaManana = obtenerDia(registro.fechaIngreso.addDays(1));
+                if(!esFestivoManana &&  diaManana == 'Sun'){
+                    esFestivoManana = true;
+                }
+                if(esFestivo){
+                    duracionTurno= 8;
+                }
+                cantidadHorasTrabajadas = obtenerTiempoHoras(registro.fechaIngreso, registro.fechaSalida);
+                
+                system.debug('/***************************************/');
+                system.debug('nocturno '+esnocturno);
+                system.debug('dia' + dia);
+                system.debug('festivo: '+esFestivo);
+                system.debug('diaManana: ' +diaManana);
+                system.debug('festivo mañana '+esFestivoManana);
+                system.debug('duracion turno: '+duracionTurno);
+                system.debug('cantidad horas trabajadas: '+cantidadHorasTrabajadas);
+                system.debug('/***************************************/');
+                
+                turno.Duracion__c = cantidadHorasTrabajadas;
+                turno.Horas_Recargo_Nocturno__c = obtenerRecargoNocturno(registro.fechaIngreso);
+                turno.Hora_Extra_Nocturna__c = obtenerExtraNocturna(registro.fechaIngreso,registro.fechaSalida,dia);
+                //  turno.Hora_Recargo_Nocturno_Festivo__c = obtenerRecargoNocturnoFestivo(registro.fechaIngreso);
+                turno.Hora_Extra_Festiva_Nocturna__c = obtenerExtraFestivaNocturna(registro.fechaIngreso,registro.fechaSalida);
+                turno.Hora_Festiva_Dominical__c = obtenerFestivaDominical(registro.fechaIngreso);
+                
+                turno.Hora_Extra_Diurna__c = obtenerExtraDiurna(registro.fechaSalida, dia, registro.fechaIngreso);
+                turno.Hora_Extra_Festiva_Diurnas__c = obtenerExtraFestivaDiurna(registro.fechaIngreso,registro.fechaSalida);
+                system.debug('turnos: '+turno);
+                listaTurnos.add(turno);
+            }
+            
         }
-        
-        
-        
+    
         insert listaTurnos;
         listaRegistros.clear();
         listaRegistrosError.clear();
@@ -702,6 +712,7 @@ global class HBT_ImportarRegistroTurnosController {
         
         return 0;
     }
+
     //Método que obtiene las horas extras diurnas en un turno
     private Decimal obtenerExtraDiurna(Datetime fechaF, String dia, Datetime fechaI){
        
@@ -772,6 +783,7 @@ global class HBT_ImportarRegistroTurnosController {
         
         return 0;
     }
+
     //Método que obtiene las horas Dominicales o festiva en un turno
     private Decimal obtenerFestivaDominical(Datetime fechaI){
         if(esNocturno && esFestivo){
@@ -892,6 +904,7 @@ global class HBT_ImportarRegistroTurnosController {
         
         return 0;
     }
+
     //Método que obtiene las horas extras  nocturnas en un turno
     private Decimal obtenerExtraNocturna(Datetime fecha, Datetime fechaF, string dia){
         Time medianoche = Time.newInstance(24, 0, 0, 0);
@@ -975,6 +988,7 @@ global class HBT_ImportarRegistroTurnosController {
         
         return 0;
     }
+    
     //Método que obtiene las horas de recargo nocturno en un turno
     private Decimal obtenerRecargoNocturno(Datetime fecha){
         if(esNocturno){
@@ -1017,7 +1031,7 @@ global class HBT_ImportarRegistroTurnosController {
     }
     
     private boolean obtenerSiEsNocturno(dateTime fecha){
-        Time nocturno = time.newInstance(17, 00, 00, 00);
+        Time nocturno = time.newInstance(inicioHoraNocturna, 00, 00, 00);
         if (fecha.hourGmt() >= nocturno.hour()){
             return true;
         }
@@ -1031,9 +1045,15 @@ global class HBT_ImportarRegistroTurnosController {
         }else{
             return diasFestivos.get(dateFormat);    
         }
-        
     }
-    
+
+    /**
+     * Método que retorna el nombre del día de la semana de una fecha dada
+     * en formato Mon, Tue, ... Sun
+     * @param fecha: fecha original
+     * @return nombre del día de la semana de fecha
+     */
+    /
     private string obtenerDia(dateTime fecha){
         Datetime dt = DateTime.newInstance(fecha.dateGmt(), Time.newInstance(0, 0, 0, 0));
         String dayOfWeek = dt.format('E');
@@ -1047,7 +1067,6 @@ global class HBT_ImportarRegistroTurnosController {
         return timeBetween;
     }
     
-  
     //Este método convierte un blob a un string
     private static String blobToString(Blob input, String inCharset){
         String hex = EncodingUtil.convertToHex(input);
