@@ -1,0 +1,81 @@
+<apex:page standardController="HBT_Frente_de_Trabajo__c" extensions="HBT_AsociacionEmpleadoFrenteController" docType="html-5.0" >
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <head>
+            <meta charset="utf-8" />
+            <meta http-equiv="x-ua-compatible" content="ie=edge" />
+            <title>Asociaciar Empleado a Frente de trabajo</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <!-- Import the Design System style sheet -->
+            <apex:slds />
+            <!--  <apex:stylesheet value="{!$Resource.Checkpoint_Style}" />
+			<apex:includeScript value="{!$Resource.jQuery}"/>-->
+        </head>
+        <style>
+            .slds-scope img{
+            height:20px !important;
+            }
+        </style>
+        <body class="container">
+                <apex:form id="configuracionEmpresaFormId">
+                <div class="slds-scope">
+                    <div class="slds-form-element">
+                        <!----------------Header----------------->
+                        <div class="slds-page-header" style="margin:1%">
+                            <div class="slds-media">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-carousel">
+                                        <svg aria-hidden="true" class="slds-icon slds-page-header__icon" style="cursor: pointer;">
+                                            <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/standard-sprite/svg/symbols.svg#timesheet_entry')}" />
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Asociación Empleados Frente">Asociaciar Empleado a Frente de trabajo</h1>
+                                </div>
+                            </div>
+                        </div>
+                        <!------------End Header----------------->
+                        <!------------mensajes----------------->
+                        <apex:outputPanel id="mensajeppal">
+                            <c:HBT_Mensajes_Page id="mensajeGlobal" listaMensajes="{!mensajesError}"/>
+                        </apex:outputPanel>
+                        <!----------------Fin mensaje ------------>
+                        <!------------------- Campos ------------>
+                        
+                        <br/>
+                        <fieldset class="slds-box slds-theme--default slds-container--middle slds-align--absolute-center" >
+                            <legend class="slds-text-heading--medium slds-p-vertical--medium">
+                                <div class="slds-p-horizontal--small slds-size--1-of-1 slds-m-top--medium">
+                                    <h3 class="slds-text-heading--small slds-m-bottom--medium">Asignación de empleados:</h3>
+                                </div>
+                            </legend>
+                            <div class="slds-grid slds-wrap" >
+                                <div class="slds-p-horizontal--small slds-size--1-of-1 slds-align_absolute-center">   
+                                    <div class="slds-form-element">
+                                        <div class="slds-form-element__control" >
+                                            <c:HBT_Multiselect leftLabel="Empleados Disponibles"
+                                                               left="{!listaEmpleadosDisponibles}"
+                                                               rightLabel="Empleados Seleccionados"
+                                                               right="{!listaEmpleadosAgregados}"
+                                                               size="10"
+                                                               width="250px"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <br/>
+                        <!------------Fin Campos------------>
+                        <!------------Footer---------->
+                        <div class="slds-modal__footer">
+                            
+                            <apex:commandButton value="Guardar Asociación" action="{!guardar}"  styleClass="slds-button slds-button_brand btn-block btnblack"/>
+                        </div>
+                        <!--------------End footer-------->
+                    </div>
+                </div>
+            </apex:form>
+        </body>
+    </html>
+    
+</apex:page>

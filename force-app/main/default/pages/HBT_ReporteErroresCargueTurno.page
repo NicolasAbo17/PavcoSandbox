@@ -1,0 +1,36 @@
+<apex:page controller="HBT_ImportarRegistroTurnosController" contentType="{!contentType}" cache="true" showheader="false">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    </head>
+    
+    <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" 
+          xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            
+                <table border="1" cellpadding="1" cellspacing="0" style="width:100%;border:1px solid #000000;font-size:12px">
+                    <tr style="font-family:verdana;color:Black;font-size:12px;height=18px;width:100%" >  
+                        <!-- Autofilter added for header row in Excel sheet -->
+                        <td style="background-color: #424242; color:white;" ><b><apex:outputText value="Número de línea"/></b> </td> 
+                        <td style="background-color: #424242; color:white;" ><b><apex:outputText value="Número de identificación del empleado"/></b> </td> 
+                        <td style="background-color: #424242; color:white;" ><b><apex:outputText value="Descripción Error"/></b></td> 
+                   </tr>
+                    
+                    <apex:repeat value="{!listaRegistrosError}" var="registro" id="registro"> 
+                        <tr border="1" style="font-family:verdana;color:Black;font-size:12px;width:100%">
+                            <td>
+                                <apex:outputText value="{!registro.numeroLinea}"/>
+                            </td> 
+                            <td>
+                               <!-- <apex:outputText value="{0,date,MM'/'dd'/'yyyy}">
+                                    <apex:param value="{!registro.fecha}" /> 
+                                </apex:outputText>-->
+                                <apex:outputText value="{!registro.identificacion}"/>
+                            </td>
+                            <td>
+                                <apex:outputLabel value="{!registro.error}" escape="false"/>                    
+                            </td>
+                        </tr> 
+                    </apex:repeat>
+                </table>
+
+    </html>
+</apex:page>

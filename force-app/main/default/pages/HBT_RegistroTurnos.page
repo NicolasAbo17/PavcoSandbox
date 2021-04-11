@@ -1,0 +1,1821 @@
+<apex:page id="RegistroTurnos" docType="html-5.0" controller="HBT_RegistroTurnosController"  applyBodyTag="false" 
+           standardStylesheets="false" lightningStylesheets="true">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    
+    <style>
+        .slds-input-hbt{
+        background-color: #fff;
+        color: #16325c;
+        border: 1px solid #d8dde6;
+        border-radius: .25rem;
+        text-align:right;
+        transition: border .1s linear,background-color .1s linear;
+        display: inline-block;
+        padding: 0 1rem 0 .75rem;
+        padding-right: 1.8rem;
+        width: 80px;
+        line-height: 1.875rem;
+        min-height: calc(1.875rem + (1px * 2));
+        }
+        
+        .slds-input-hbt:focus{
+        border: 1px solid #f9df49;
+        }        
+        
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+        }
+        
+        input[type=number] {
+        -moz-appearance:textfield;
+        }
+    </style>
+    <style type="text/css">
+        a.tooltip {
+        position: relative;
+        text-decoration: none;
+        color: blue;
+        padding:0 0 0 0;
+        }
+        a.tooltip span {
+        display: none;
+        padding:0 0 0 0;
+        }
+        a.tooltip:hover span {
+        position: absolute;
+        top: 40px;
+        left: 0px;
+        display: block;
+        width: 250px;
+        color: black;
+        background-color: #FFFF40;
+        border: 1px solid black;
+        padding: 5px;
+        }
+    </style>      
+    
+    <script>
+    
+    var j$ =jQuery.noConflict(); 
+    
+    //Abre el modal para el registro de logs de GH
+    function openModalGH(){                
+        j$('#slds-backdropGH').addClass('slds-backdrop--open');
+        j$('#sectionLogsGH').addClass('slds-fade-in-open'); 
+    }
+    
+    //Cierra el modal para el registro de logs de GH
+    function closeModalHGS(){        
+        j$('#slds-backdropGH').removeClass('slds-backdrop--open');
+        j$('#sectionLogsGH').removeClass('slds-fade-in-open'); 
+    }
+    
+    function btnEnabled3(){
+        var $buttonG3 = jQuery('[id*=btnGuardar3]');
+        $buttonG3.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonG4 = jQuery('[id*=btnGuardar4]');
+        $buttonG4.toggleClass('btnDisabled', false).attr('disabled', 'disabled');                             
+    }        
+    function btnEnabled4(){
+        var $buttonG3 = jQuery('[id*=btnGuardar3]');
+        $buttonG3.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonG4 = jQuery('[id*=btnGuardar4]');
+        $buttonG4.toggleClass('btnDisabled', false).attr('disabled', null);       
+    }    
+    
+    //metodo para guardar un log futuro
+    function GuardarLog(){
+        guardarLogFuturo();   
+    }
+    
+    /*SLDS Tabs JS*/
+    j$( document ).ready(function() {
+        cambioTab(j$(".slds-tabs_scoped__link:first-child")[0]);
+        // var j$buttonG2 = jQuery('[id*=btnGuardar2]');
+        //        j$buttonG2.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        // var j$buttonG1buttonG1 = jQuery('[id*=btnGuardar1]');
+        // j$buttonG1.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+    });
+    
+    function cambioTab(tab){
+        j$(tab).parent().parent().find('.slds-tabs_scoped__link').attr('aria-selected','false');
+        j$(tab).attr('aria-selected','true');
+        j$(tab).parent().parent().find('.slds-tabs_scoped__link').attr('tabindex','-1');
+        j$(tab).attr('tabindex','0');
+        j$(tab).parent().parent().addClass('slds-active').siblings().removeClass('slds-active'); 
+    }
+    
+    function cambioTabModal(tab){
+        optionLog = true;
+        optionDetalle = false;
+        j$(tab).parent().parent().find('.slds-tabs_scoped__link').attr('aria-selected','false');
+        j$(tab).attr('aria-selected','true');
+        j$(tab).parent().parent().find('.slds-tabs_scoped__link').attr('tabindex','-1');
+        j$(tab).attr('tabindex','0');
+        j$(tab).parent().addClass('slds-active').siblings().removeClass('slds-active'); 
+        if(tab.id=='tab-scoped-1__item')
+        {
+            j$('#tab-scoped-11').addClass('slds-show').siblings().removeClass('slds-show');
+            j$('#tab-scoped-12').addClass('slds-hide').siblings().removeClass('slds-hide');
+        }else{
+            j$('#tab-scoped-12').addClass('slds-show').siblings().removeClass('slds-show');
+            j$('#tab-scoped-11').addClass('slds-hide').siblings().removeClass('slds-hide');
+        }
+    }
+    
+    
+    /*SLDS Tabs JS*/
+    /*SLDS Modals JS*/
+    function openModalDescripcionLog(){                                           
+        j$('#slds-backdrop').addClass('slds-backdrop--open');
+        j$('#ModalDescripcionLog').addClass('slds-fade-in-open');
+    }  
+    function closeModalDescripcionLog(){
+        j$('#ModalDescripcionLog').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop').removeClass('slds-backdrop--open');               
+    }
+    function openModalMensaje1(){                                          
+        j$('#slds-backdrop0').addClass('slds-backdrop--open');
+        j$('#ModalMensaje1').addClass('slds-fade-in-open'); 
+    }  
+    function closeModalMensaje1(){
+        j$('#ModalMensaje1').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop0').removeClass('slds-backdrop--open');               
+    }
+    function openModalMensaje2(){                                          
+        j$('#slds-backdrop1').addClass('slds-backdrop--open');
+        j$('#ModalMensaje2').addClass('slds-fade-in-open'); 
+    }  
+    function closeModalMensaje2(){
+        j$('#ModalMensaje2').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop1').removeClass('slds-backdrop--open');               
+    }
+    function openModalMensaje3(){                                          
+        j$('#slds-backdrop2').addClass('slds-backdrop--open');
+        j$('#ModalMensaje3').addClass('slds-fade-in-open'); 
+    }                      
+    function closeModalMensaje3(){
+        j$('#ModalMensaje3').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop2').removeClass('slds-backdrop--open');   
+    }
+    function openModalMensaje4(){
+        j$('#slds-backdrop3').addClass('slds-backdrop--open');
+        j$('#ModalMensaje4').addClass('slds-fade-in-open'); 
+    } 
+    function closeModalMensaje4(){
+        j$('#ModalMensaje4').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop3').removeClass('slds-backdrop--open');   
+    }
+    function openModalMensaje5(){
+        j$('#slds-backdrop4').addClass('slds-backdrop--open');
+        j$('#ModalMensaje5').addClass('slds-fade-in-open'); 
+    } 
+    function closeModalMensaje5(){
+        j$('#ModalMensaje5').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop4').removeClass('slds-backdrop--open');   
+    }
+    
+    /*SLDS Modals JS*/
+    /*Mace DIC 19*/
+    var msjeErrorModal = false;
+    function validarRangoLogModal(value){ 
+        msjeErrorModal = false;
+        var valor = parseInt(value);
+        if(value==null || value=='' || value==undefined || value < 0 || value > 24){
+            msjeErrorModal = true;            
+        }else {
+            msjeErrorModal = false;
+        }
+        
+        
+    }
+    
+    //var horaAdicional = false; //omgm
+    /*
+    function setHoraAdicional(checkHA){
+        alert(checkHA);
+        horaAdicional = checkHA;
+        if (horaAdicional == 'on'){
+            alert('prendido');
+        }else{
+            alert('apagado');
+        }    
+    }
+    
+    function validarComentario(){         
+        //omgm
+        //var horaAdicional = document.getElementById('hAdicional');           
+        var comentario= document.getElementById('comentarioLog').value;         
+                
+        if(horaAdicional.checked==true && comentario==''){                  
+            j$('#tab-scoped-12 #comentarioLog').attr('required',true);
+            j$('#tab-default-1').removeClass('slds-hide'); 
+            j$('#tab-default-1').addClass('slds-show');        
+            msjeErrorModal = true;            
+        }else{                       
+            j$('#tab-default-1').removeClass('slds-show');  
+            j$('#tab-default-1').addClass('slds-hide');                      
+            msjeErrorModal = false;            
+        }     
+    }*/
+    
+    function validarComentarioDetalle(valor, value){          
+        msjeErrorModal = false;  
+        if((value==null || value==undefined || value=='') && valor==true){
+            j$('#tab-scoped-12 #comentarioDetalle').attr('required',true);
+            j$('#tab-default-2').removeClass('slds-hide'); 
+            j$('#tab-default-2').addClass('slds-show'); 
+            msjeErrorModal = true;                  
+        }else {
+            j$('#tab-scoped-12 #comentarioDetalle').attr('required',false);
+            msjeErrorModal = false;            
+        }
+        
+    }
+    
+    function validarComentarioDetalleCheck(valor, value){                        
+        msjeErrorModal = false;         
+        if((value==null || value==undefined || value=='') && (valor.checked==true)){            
+            j$('#tab-scoped-12 #comentarioDetalle').attr('required',true);
+            j$('#tab-default-2').removeClass('slds-hide'); 
+            j$('#tab-default-2').addClass('slds-show'); 
+            msjeErrorModal = true;              
+        }else {   
+            j$('#tab-scoped-12 #comentarioDetalle').attr('required',false);
+            msjeErrorModal = false;            
+        }  
+    }
+    
+    function validarFormModal(){   
+        
+        console.log(msjeErrorModal);
+        if (msjeErrorModal == false){   
+            //  alert('NO hay error');
+            closeModalDescripcionLog();
+            openModalMensaje3(); 
+            activarInputs();
+        } 
+        if (msjeErrorModal == true){   
+            //    alert('error');
+            openModalDescripcionLog(); 
+        } 
+    }
+    
+    
+    </script>
+    
+    <script> 
+    function launchWindow(){
+        closeModalMensaje2();
+        noGuarda=false;
+        if (btnReporteTiempos){
+            callReporteTiempos();
+            btnReporteTiempos = false;
+        }      
+        if (btnRegistroItem){
+            callRegistroItemNoProgramado();
+            btnRegistroItem = false;
+        }      
+        if (linkCambiarSemana){
+            getdias();
+            linkCambiarSemana = false;
+        } 
+        if (primeraPagina){
+            Beginning();
+            primeraPagina = false;
+        } 
+        if (anteriorPagina){
+            Previous();
+            anteriorPagina = false;
+        } 
+        if (siguientePagina){
+            Next();
+            siguientePagina = false;
+        } 
+        if (ultimaPagina){
+            End();
+            ultimaPagina = false;
+        }
+        if (cambiarProyecto){
+            nuevoProyecto();
+            cambiarProyecto = false;
+        }
+        
+    }    
+    var j$ = jQuery.noConflict();   
+    </script>
+    
+    <script> 
+    function abrirDetalle(){
+        var $inputLu = jQuery('[id*=lunes]');
+        $inputLu.attr('disabled', 'disabled');
+        var $inputMa = jQuery('[id*=martes]');
+        $inputMa.attr('disabled', 'disabled');
+        var $inputMi = jQuery('[id*=miercoles]');
+        $inputMi.attr('disabled', 'disabled');
+        var $inputJu = jQuery('[id*=jueves]');
+        $inputJu.attr('disabled', 'disabled');
+        var $inputVi = jQuery('[id*=viernes]');
+        $inputVi.attr('disabled', 'disabled');
+        var $inputSa = jQuery('[id*=sabado]');
+        $inputSa.attr('disabled', 'disabled');
+        var $inputDo = jQuery('[id*=domingo]');
+        $inputDo.attr('disabled', 'disabled');
+        openModalDescripcionLog(); 
+    }
+    
+    function activarInputs(){
+        var $inputLu = jQuery('[id*=lunes]');
+        $inputLu.attr('disabled', null);
+        var $inputMa = jQuery('[id*=martes]');
+        $inputMa.attr('disabled', null);
+        var $inputMi = jQuery('[id*=miercoles]');
+        $inputMi.attr('disabled', null);
+        var $inputJu = jQuery('[id*=jueves]');
+        $inputJu.attr('disabled', null);
+        var $inputVi = jQuery('[id*=viernes]');
+        $inputVi.attr('disabled', null);
+        var $inputSa = jQuery('[id*=sabado]');
+        $inputSa.attr('disabled', null);
+        var $inputDo = jQuery('[id*=domingo]');
+        $inputDo.attr('disabled', null);
+    }
+    
+    function cancelarAcciones(){
+        btnReporteTiempos = false;
+        btnRegistroItem = false;   
+        linkCambiarSemana = false;
+        primeraPagina = false;
+        anteriorPagina = false;
+        siguientePagina = false;
+        ultimaPagina = false;
+        cambiarProyecto = false;
+        verCerradas = false;
+    }
+    
+    </script>
+    
+    <script> 
+    function inputLimiter(e,allow) {
+        var AllowableCharacters = '';
+        if (allow == 'Letters'){AllowableCharacters=' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';}
+        if (allow == 'Numbers'){AllowableCharacters='1234567890,';}
+        if (allow == 'NameCharacters'){AllowableCharacters=' ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-.\'';}
+        if (allow == 'NameCharactersAndNumbers'){AllowableCharacters='1234567890 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-\'';}
+        if (allow == 'Currency'){AllowableCharacters='1234567890.';}
+        
+        var k = document.all?parseInt(e.keyCode): parseInt(e.which);
+        if (k!=13 && k!=8 && k!=0){
+            if ((e.ctrlKey==false) && (e.altKey==false)) {
+                return (AllowableCharacters.indexOf(String.fromCharCode(k))!=-1);
+            } else {
+                return true;
+            }
+        } else {
+            return true;
+        }
+    }     
+    </script>
+    
+    <script> 
+    var noGuarda = false;    
+    var btnReporteTiempos = false; //Determina si se dio click en el botón de Reporte de Tiempos
+    var btnRegistroItem   = false; //Determina si se dio click en el botón de Registro de item no programada
+    var linkCambiarSemana = false;
+    var primeraPagina = false;
+    var anteriorPagina = false;
+    var siguientePagina = false;
+    var ultimaPagina = false;
+    var cambiarProyecto = false;
+    var verCerradas = false;
+    
+    function DescartarLogs(id){         
+        noGuarda = true;
+        //  var $buttonG1 = jQuery('[id*=btnGuardar1]');
+        //$buttonG1.toggleClass('btnDisabled', false).attr('disabled', null);
+        //var $buttonG2 = jQuery('[id*=btnGuardar2]');
+        //$buttonG2.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonR = jQuery('[id*=btnReporte]');
+        $buttonR.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonI = jQuery('[id*=btnItem]');
+        $buttonI.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonB = jQuery('[id*=primeraPag]');
+        $buttonB.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonP = jQuery('[id*=anteriorPag]');
+        $buttonP.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonN = jQuery('[id*=siguientePag]');
+        $buttonN.toggleClass('btnDisabled', false).attr('disabled', null);
+        var $buttonE = jQuery('[id*=ultimaPag]');
+        $buttonE.toggleClass('btnDisabled', false).attr('disabled', null);
+    }
+    </script>
+    
+    <script> 
+    function DescartarLogs2(){         
+        noGuarda = false;
+        // var $buttonG1 = jQuery('[id*=btnGuardar1]');
+        //   $buttonG1.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        //   var $buttonG2 = jQuery('[id*=btnGuardar2]');
+        //   $buttonG2.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+    }        
+    </script>
+    
+    <script> 
+    function inhabilitarBotones(){         
+        //    var $buttonG1 = jQuery('[id*=btnGuardar1]');
+        //   $buttonG1.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        //   var $buttonG2 = jQuery('[id*=btnGuardar2]');
+        //   $buttonG2.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonR = jQuery('[id*=btnReporte]');
+        $buttonR.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonI = jQuery('[id*=btnItem]');
+        $buttonI.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonB = jQuery('[id*=primeraPag]');
+        $buttonB.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonP = jQuery('[id*=anteriorPag]');
+        $buttonP.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonN = jQuery('[id*=siguientePag]');
+        $buttonN.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+        var $buttonE = jQuery('[id*=ultimaPag]');
+        $buttonE.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+    }        
+    </script>
+    
+    <script type="text/javascript">
+    
+    function alertError(blnBotones, strTipo){   
+        if (noGuarda==true){ //Hay registros por descartar        		
+            jQuery.noConflict(); 
+            openModalMensaje2();        		
+            noGuarda = false;
+            if (blnBotones=='true'){  //Si el click fue en el botón de Reporte de Tiempos/Registro de item no programado
+                if (strTipo == 'Reporte'){  
+                    btnReporteTiempos=true;
+                } if(strTipo == 'Registro') {
+                    btnRegistroItem=true;
+                } if(strTipo == 'nuevaSemana') {
+                    linkCambiarSemana=true;
+                } if(strTipo == 'primeraPag') {
+                    primeraPagina=true;
+                } if(strTipo == 'anteriorPag') {
+                    anteriorPagina=true;
+                } if(strTipo == 'siguientePag') {
+                    siguientePagina=true;
+                } if(strTipo == 'ultimaPag') {
+                    ultimaPagina=true;
+                } if(strTipo == 'tabsProy') {
+                    //$('#ModalMensaje22').modal('show');
+                    cambiarProyecto = true;
+                } if(strTipo == 'cerradas'){
+                    verCerradas = true;
+                }
+            }
+        }else if(blnBotones=='true'){ //Si el click fue en el botón de Reporte de Tiempos/Registro de item no programado pero no hay registros por descartar
+            if (strTipo == 'Reporte'){                    
+                callReporteTiempos();
+            }if(strTipo == 'Registro') {
+                callRegistroItemNoProgramado();
+            }              
+            if(strTipo == 'nuevaSemana') {
+                getdias();
+            } 
+            if(strTipo == 'primeraPag') {
+                Beginning();
+            } 
+            if(strTipo == 'anteriorPag') {
+                Previous();
+            } 
+            if(strTipo == 'siguientePag') {
+                Next();
+            } 
+            if(strTipo == 'ultimaPag') {
+                End();
+            }
+            if(strTipo == 'tabsProy') {
+                nuevoProyecto();
+            }
+            
+        }
+    }    
+    
+    function validarForm(){    
+        openModalMensaje3();
+    }
+    
+    function validarCampos(){               
+    }
+    
+    function validarRangoAvance(value){ 
+        var valor = parseInt(value);
+        if(value==null || value=='' || value==undefined){
+            openModalMensaje4(); 
+        }
+        if (value < 0 || value > 100){
+            openModalMensaje4(); 
+        }
+    }
+    
+    function validarRangoLog(value){ 
+        var valor = parseInt(value);
+        if(value==null || value=='' || value==undefined){
+            openModalMensaje5();  
+        }
+        if (value < 0 || value > 1440){
+            openModalMensaje5(); 
+        }
+    }
+    
+    function validarFormModalBorrar(){                
+        console.log(msjeErrorModal);
+        if (msjeErrorModal == false){  
+            closeModalDescripcionLog();
+            openModalMensaje1(); 
+            activarInputs();            
+        } 
+        if (msjeErrorModal == true){   
+            openModalDescripcionLog();
+        }         
+    }
+    
+    //Muestra el modal con el mensaje de logs descartados cuando se da clic en el botón de Reporte de Tiempos
+    function mostrarModalDescartados(){
+        if (noGuarda==true){ //Valida que hayan registros hechos por el usuario que no se hayan guardado
+            jQuery.noConflict(); 
+            openModalMensaje2(); 
+            if (form.checkValidity()){            
+            } 
+            //noGuarda = false;
+        }            
+    }
+    
+    //Valor anterior de cada input donde se ingresan los tiempos registrados     
+    var valorAntD;
+    var valorAntL;
+    var valorAntMa;
+    var valorAntMi;
+    var valorAntJ;
+    var valorAntV;
+    var valorAntS;
+    
+    //Se obtiene valor anterior del input, enviado al dar click en él 
+    function valorAnteriorD(vlrA){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntD = parseInt(0);
+        } else {
+            valorAntD = parseInt(vlrA);
+        }
+    }
+    function valorAnteriorL(vlrA){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntL = parseInt(0);
+        } else {
+            valorAntL = parseInt(vlrA);
+        }
+    }
+    function valorAnteriorMa(vlrA){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntMa = parseInt(0);
+        } else {
+            valorAntMa = parseInt(vlrA);
+        }
+    }
+    function valorAnteriorMi(vlrA){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntMi = parseInt(0);
+        } else {
+            valorAntMi = parseInt(vlrA);
+        }
+    }
+    function valorAnteriorJ(vlrA){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntJ = parseInt(0);
+        } else {
+            valorAntJ = parseInt(vlrA);
+        }
+    }
+    function valorAnteriorV(vlrAV){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntV = parseInt(0);
+        } else {
+            valorAntV = parseInt(vlrA);
+        }
+    }
+    function valorAnteriorS(vlrA){
+        if (vlrA=='' || vlrA==null || vlrA == undefined){
+            valorAntS = parseInt(0);
+        } else {
+            valorAntS = parseInt(vlrA);
+        }
+    }
+    
+    var totalD;
+    var restanteD;
+    //Domingo: Actualiza el total del día
+    function sumatoriaDiasD(vlrN){     
+        //var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        var totaldia = 8;
+        //Obtener valor acumulado del domingo, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totDomingoV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }   
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntD=='' || valorAntD==null || valorAntD == undefined){
+            valorAntD = parseInt(0);
+        } else {
+            valorAntD = parseInt(valorAntD);
+        }
+        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntD){
+            diferencia = valorNuevo - valorAntD;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntD - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totDomingoV]').text(nuevoTotal);  
+        totalD = nuevoTotal;
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resDomingoV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resDomingoV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resDomingoV]').text(restante);   
+        totalD = nuevoTotal;
+        restanteD = restante;
+        
+        
+        
+    }
+    
+    var totalL;
+    var restanteL;
+    //Lunes: Actualiza el total y restante del día
+    function sumatoriaDiasL(vlrN, festivo){
+        var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        if(festivo == 'true'){
+            totaldia = 8;
+        }
+        //Obtener valor acumulado del lunes, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totLunesV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntL=='' || valorAntL==null || valorAntL == undefined){
+            valorAntL = parseInt(0);
+        } else {
+            valorAntL = parseInt(valorAntL);
+        }
+        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntL){
+            diferencia = valorNuevo - valorAntL;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntL - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totLunesV]').text(nuevoTotal);  
+        
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resLunesV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resLunesV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resLunesV]').text(restante); 
+        totalL = nuevoTotal;
+        restanteL = restante;
+    } 
+    
+    var totalMa;
+    var restanteMa;
+    //Martes: Actualiza el total y restante del día
+    function sumatoriaDiasMa(vlrN, festivo){ 
+        var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        if(festivo == 'true'){
+            totaldia = 8;
+        }
+        //Obtener valor acumulado del martes, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totMartesV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }   
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntMa=='' || valorAntMa==null || valorAntMa == undefined){
+            valorAntMa = parseInt(0);
+        } else {
+            valorAntMa = parseInt(valorAntMa);
+        }        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntMa){
+            diferencia = valorNuevo - valorAntMa;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntMa - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totMartesV]').text(nuevoTotal);  
+        
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resMartesV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resMartesV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resMartesV]').text(restante);  
+        totalMa = nuevoTotal;
+        restanteMa = restante;
+    } 
+    
+    var totalMi;
+    var restanteMi;
+    //Miércoles: Actualiza el total y restante del día
+    function sumatoriaDiasMi(vlrN, festivo){     
+        var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        if(festivo == 'true'){
+            totaldia = 8;
+        }
+        //Obtener valor acumulado del miércoles, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totMiercolesV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }    
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntMi=='' || valorAntMi==null || valorAntMi == undefined){
+            valorAntMi = parseInt(0);
+        } else {
+            valorAntMi = parseInt(valorAntMi);
+        }
+        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntMi){
+            diferencia = valorNuevo - valorAntMi;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntMi - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totMiercolesV]').text(nuevoTotal);  
+        
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resMiercolesV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resMiercolesV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resMiercolesV]').text(restante);   
+        totalMi = nuevoTotal;
+        restanteMi = restante;
+    } 
+    
+    var totalJ;
+    var restanteJ;
+    //Jueves: Actualiza el total y restante del día
+    function sumatoriaDiasJ(vlrN, festivo){     
+        var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        if(festivo == 'true'){
+            totaldia = 8;
+        }
+        //Obtener valor acumulado del jueves, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totJuevesV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }  
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntJ=='' || valorAntJ==null || valorAntJ == undefined){
+            valorAntJ = parseInt(0);
+        } else {
+            valorAntJ = parseInt(valorAntJ);
+        }
+        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntJ){
+            diferencia = valorNuevo - valorAntJ;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntJ - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totJuevesV]').text(nuevoTotal);  
+        
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resJuevesV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resJuevesV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resJuevesV]').text(restante);  
+        totalJ = nuevoTotal;
+        restanteJ = restante;
+    } 
+    
+    var totalV;
+    var restanteV;
+    //Viernes: Actualiza el total y restante del día
+    function sumatoriaDiasV(vlrN, festivo){   
+        var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        if(festivo == 'true'){
+            totaldia = 8;
+        }
+        
+        //Obtener valor acumulado del viernes, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totViernesV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntV=='' || valorAntV==null || valorAntV == undefined){
+            valorAntV = parseInt(0);
+        } else {
+            valorAntV = parseInt(valorAntV);
+        }
+        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntV){
+            diferencia = valorNuevo - valorAntV;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntV - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totViernesV]').text(nuevoTotal);  
+        
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resViernesV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resViernesV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resViernesV]').text(restante);  
+        totalV = nuevoTotal;
+        restanteV = restante;
+    } 
+    
+    var totalS;
+    var restanteS;
+    //Sabado: Actualiza el total y restante del día
+    function sumatoriaDiasS(vlrN){  
+        var totaldia = j$('[id$=myHiddenTotalSabadoField]').val();
+        //Obtener valor acumulado del sábado, el mismo que se va a setear para actualizar el tiempo que quedaría faltando.        
+        var total = j$('[id$=totSabadoV]').text(); 
+        total = parseInt(total);             
+        if (vlrN=='' || vlrN==null || vlrN == undefined){
+            var valorNuevo = parseInt(0);
+        } else {
+            var valorNuevo = parseInt(vlrN); //Obtener el nuevo valor ingresado        
+        }   
+        var diferencia; //Valor de la diferencia entre el valor anterior y el nuevo
+        var nuevoTotal; //Para setear el valor a actualizar como nuevo acumulado del día
+        if (valorAntS=='' || valorAntS==null || valorAntS == undefined){
+            valorAntS = parseInt(0);
+        } else {
+            valorAntS = parseInt(valorAntS);
+        }
+        
+        // Determina si el valor se debe restar o sumar
+        if(valorNuevo > valorAntS){
+            diferencia = valorNuevo - valorAntS;
+            nuevoTotal = total + diferencia;
+        }else{
+            diferencia = valorAntS - valorNuevo;
+            nuevoTotal = total - diferencia;
+        }           
+        //Setear el nuevo valor del total
+        jQuery('[id$=totSabadoV]').text(nuevoTotal);
+        totalS = nuevoTotal;
+        //Setear el nuevo valor del restante
+        var restante;
+        if (nuevoTotal<=totaldia){
+            restante = - totaldia + nuevoTotal; //Establece signo negativo si aún falta tiempo para registrar
+            jQuery('[id$=resSabadoV]').css({'color':'red'}); //setear texto con color rojo si ya se superaron los 540 minutos
+        }else{
+            restante = nuevoTotal - totaldia; //Establece signo positivo si el tiempo está por encima de los 540 minutos
+            jQuery('[id$=resSabadoV]').css({'color':'green'}); //setear texto con color verde si ya se superaron los 540 minutos
+        }
+        jQuery('[id$=resSabadoV]').text(restante);  
+        totalS = nuevoTotal;
+        restanteS = restante;
+    }
+    
+    function mantenerTotales2(){
+        var totaldia = j$('[id$=myHiddenTotalDiaField]').val();
+        if (totalD=='' || totalD==null || totalD == undefined){
+            totalD = parseInt(0);
+        } else {
+            totalD = parseInt(totalD);
+        }
+        jQuery('[id$=totDomingoV]').text(totalD);
+        if (restanteD=='' || restanteD==null || restanteD == undefined){
+            restanteD = parseInt(0);
+        } else {
+            restanteD = parseInt(restanteD);
+        }
+        jQuery('[id$=resDomingoV]').text(restanteL);
+        if (totalL=='' || totalL==null || totalL == undefined){
+            totalL = parseInt(0);
+        } else {
+            totalL = parseInt(totalL);
+        }
+        jQuery('[id$=totLunesV]').text(totalL);
+        if (restanteL=='' || restanteL==null || restanteL == undefined){
+            restanteL = parseInt(0);
+        } else {
+            restanteL = parseInt(restanteL);
+        }
+        jQuery('[id$=resLunesV]').text(restanteL);
+        
+        if (totalMa=='' || totalMa==null || totalMa == undefined){
+            totalMa = parseInt(0);
+        } else {
+            totalMa = parseInt(totalMa);
+        }
+        jQuery('[id$=totMartesV]').text(totalMa);
+        if (restanteMa=='' || restanteMa==null || restanteMa == undefined){
+            restanteMa = parseInt(0);
+        } else {
+            restanteMa = parseInt(restanteMa);
+        }
+        jQuery('[id$=resMartesV]').text(restanteMa);
+        
+        if (totalMi=='' || totalMi==null || totalMi == undefined){
+            totalMi = parseInt(0);
+        } else {
+            totalMi = parseInt(totalMi);
+        }
+        jQuery('[id$=totMiercolesV]').text(totalMi);
+        if (restanteMi=='' || restanteMi==null || restanteMi == undefined){
+            restanteMi = parseInt(0);
+        } else {
+            restanteMi = parseInt(restanteMi);
+        }
+        jQuery('[id$=resMiercolesV]').text(restanteMi);
+        
+        if (totalJ=='' || totalJ==null || totalJ == undefined){
+            totalJ = parseInt(0);
+        } else {
+            totalJ = parseInt(totalJ);
+        }
+        jQuery('[id$=totJuevesV]').text(totalJ);
+        if (restanteJ=='' || restanteJ==null || restanteJ == undefined){
+            restanteJ = parseInt(0);
+        } else {
+            restanteJ = parseInt(restanteJ);
+        }
+        jQuery('[id$=resJuevesV]').text(restanteJ);
+        
+        if (totalV=='' || totalV==null || totalV == undefined){
+            totalV = parseInt(0);
+        } else {
+            totalV = parseInt(totalV);
+        }
+        jQuery('[id$=totViernesV]').text(totalV);
+        if (restanteV=='' || restanteV==null || restanteV == undefined){
+            restanteV = parseInt(0);
+        } else {
+            restanteV = parseInt(restanteV);
+        }
+        jQuery('[id$=resViernesV]').text(restanteV);
+        
+        if (totalS=='' || totalS==null || totalS == undefined){
+            totalS = parseInt(0);
+        } else {
+            totalS = parseInt(totalS);
+        }
+        jQuery('[id$=totSabadoV]').text(totalS);
+        if (restanteS=='' || restanteS==null || restanteS == undefined){
+            restanteS = parseInt(0);
+        } else {
+            restanteS = parseInt(restanteS);
+        }
+        jQuery('[id$=resSabadoV]').text(restanteV);
+    }
+    </script>
+    
+    <apex:slds />
+    <div class="slds-scope">
+        <apex:form id="out"  styleClass="formOutClass">
+            <apex:actionFunction name="getdias" action="{!cambiarSemana}" oncomplete="mostrarModalDescartados();" reRender="modalMensaje2,resultados,fechaReal,mjenoresult" />
+            <apex:inputHidden value="{!fechaNueva}" id="myHiddenField"/>
+            <apex:inputHidden value="{!totalDia}" id="myHiddenTotalDiaField"/>
+            <apex:inputHidden value="{!totalsabadoTemp}" id="myHiddenTotalSabadoField"/>
+            <apex:actionStatus id="myStatus">
+                <apex:facet name="start">
+                    <img src="/img/loading.gif" />
+                </apex:facet>
+            </apex:actionStatus>
+            
+            <!----------------Header---------------->
+            <div class="slds-page-header" style="margin:1%">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-carousel">
+                            <svg aria-hidden="true" class="slds-icon slds-page-header__icon" style="cursor: pointer;">
+                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/standard-sprite/svg/symbols.svg#task')}" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Registro de Turnos">Registro de Turnos</h1>
+                    </div>
+                </div>
+            </div>
+            
+            <apex:pageBlock id="msjProys" rendered="{!blnProys}" >
+                
+                <div class="slds-grid slds-grid_align-center" id="fechaReal">
+                    <div class="slds-grid_align-center"> <a id="mylink" style="color: #373b57;padding-left: 20%;">
+                        <apex:outputText id="rangoFecha" value="{!rangoFecha}" style="font-size:medium;" />&nbsp;&nbsp;
+                        <apex:image id="datepicker1" value="{!$Resource.calendar}" style="width:6%;height:65%;" />
+                        <input type="hidden" id="dp" />
+                        <div></div></a></div>
+                </div>
+                <br/>
+                <div class="slds-grid">
+                    <div style="width:80%;text-align:left">
+                        <apex:pageBlockSection >
+                            <apex:input type="text" value="{!agrupadorFiltro}" styleClass="slds-input" id="agrupadorFiltro" label="Número documento empleado" title="Ingrese una parte del numero del documento del empleado"/> 
+                            <apex:commandButton id="btnFiltrar" styleClass="slds-button slds-button_neutral" value="Filtrar" action="{!recargarLogs}" reRender="resultados,mjenoresult,datosResultado,tareasCerradas,myButtons"/>    
+                        </apex:pageBlockSection>    
+                    </div>
+                    
+                    
+                </div>
+                
+                <br/><br/>
+                
+                <apex:outputPanel id="titulocerrados"  >
+                    <apex:outputText value="Items de trabajo cerrados" styleClass="slds-tile__title" rendered="{!verCerradas}" ></apex:outputText>
+                </apex:outputPanel>
+                <apex:outputPanel id="proyectos">
+                    <div class="slds-grid slds-grid_align-center">
+                        <div id="tabsNew" class="slds-tabs_scoped">
+                            <ul class="slds-tabs_scoped__nav" role="tablist">
+                                <apex:actionFunction name="nuevoProyecto" action="{!cambiarproyecto}" reRender="resultados,mjenoresult,FechaReg,datosResultado,tareasCerradas,myButtons,agrupadorFiltro" >
+                                    <apex:param name="selectedId" value="{!elId}"/>
+                                    <apex:param name="asociarCliente" value="{!acl}"/>
+                                </apex:actionFunction>
+                                <apex:repeat value="{!proyectoUsuario}" var="p" id="tablas1" >
+                                    <li class="slds-tabs_scoped__item" title="{!p.name}" role="presentation"> 
+                                        <apex:outputpanel id="counter">
+                                            <a class="slds-tabs_scoped__link" role="tab" tabindex="0"  aria-controls="tabs1" id="tab-item" onclick="cambioTab(this);"> 
+                                                <apex:outputText value="{!p.name}" />
+                                                <apex:actionSupport id="proyectoSelec" event="onclick" action="{!inicializarId}" reRender="modalMensaje2,tabs1" oncomplete="alertError('true','tabsProy')">
+                                                    <apex:param name="elId" assignTo="{!p.ID}" value="{!p.ID}"/>
+                                                    <!--   <apex:param name="acl" assignTo="{!p.Asociar_Cliente_Log__c}" value="{!p.Asociar_Cliente_Log__c}"/>-->
+                                                </apex:actionSupport>
+                                            </a>
+                                        </apex:outputpanel>
+                                    </li>
+                                </apex:repeat>                                      
+                            </ul>
+                            
+                            <div id="tabs1" class="slds-tabs_scoped__content slds-show" role="tabpanel" aria-labelledby="tab-item" >
+                                
+                                <apex:outputPanel id="mjenoresult">
+                                    
+                                    <apex:outputText value="No hay empleados asociados al frente de trabajo para mostrar" rendered="{!tareas.size==0}" style="font-size:medium;color:#518dc1;font-style:italic;"></apex:outputText>
+                                </apex:outputPanel>
+                                <apex:outputPanel id="datosResultado">
+                                    <apex:pageBlockTable value="{!tareas}" var="wi" styleClass="slds-table slds-table_bordered slds-table_cell-buffer slds-table_col-bordered"  id="resultados" rendered="{!tareas.size>0}" > 
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center" headerValue="Info">                                                             
+                                            <a class="tooltip" href="#">
+                                                <svg aria-hidden="true" class="slds-button__icon slds-icon_x-small slds-icon-action-info  slds-text-align_center">
+                                                    <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, 'assets/icons/action-sprite/svg/symbols.svg#info')}" />
+                                                </svg>
+                                                <span style="width:auto; background-color: #EEF3F4; top:-90px;">
+                                                    <b>Número de Documento: </b>{!wi.abierto}<br/>
+                                                    <b>Turno Lunes a Viernes: </b>{!totaldia}<br/> 
+                                                    <b>Turno Sabados: </b>{!totalSabadoTemp}<br/>
+                                                    
+                                                </span>
+                                            </a>      
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center" styleClass="slds-truncate" headerValue="Nombre Empleado" style="width:200px">
+                                            <apex:actionRegion >
+                                                <apex:outputpanel id="Item">          
+                                                    
+                                                    <div style="word-wrap: break-word; max-width: 200px;overflow: hidden;text-overflow: ellipsis;">     
+                                                        {!wi.nombreTarea}
+                                                    </div>  
+                                                    
+                                                </apex:outputpanel>  
+                                            </apex:actionRegion>
+                                        </apex:column>
+                                        <!-- <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate" value="{!wi.duracion}" headerValue="Horario" id="planeado"/> -->
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate" style="background:{!IF(!not(fesDom),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!dom}" id="dom"/>           
+                                            </apex:facet> 
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                <apex:input type="number" html-step="any" value="{!wi.domingo}"   styleClass="slds-input-hbt"
+                                                            html-min="0" html-max="1440" id="domingo" disabled="true" rendered="{!wi.abierto!='Cerrado'}" 
+                                                            onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorD(this.value)" 
+                                                            onblur="sumatoriaDiasD(this.value);validarRangoLog(this.value);" onkeypress="return inputLimiter(event,'Numbers');">
+                                                </apex:input>
+                                                <apex:actionRegion rendered="{!desdom}">
+                                                    <apex:outputpanel id="plus6">
+                                                        <a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                            <apex:image id="theImageDom" value="{!$Resource.abrirLog}" width="15" height="15"  />
+                                                            <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                                <apex:param value="{!dom}" assignTo="{!diaSeleccionadoDescripcion}" name="{!dom}" />
+                                                                <apex:param value="{!wi.asignacionItem }"  name="idItemTrabajo" />
+                                                            </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                            </div>
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps  slds-text-align_center"  styleClass="slds-truncate" style="background:{!IF(!not(fesLun),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!lun}" id="lun"/> 
+                                            </apex:facet> 
+                                            
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                <apex:input type="number" html-step="any" styleClass="slds-input-hbt"  size="4"  
+                                                            value="{!wi.lunes}" html-min="0" html-max="1440" required="true" id="lunes" 
+                                                            disabled="true" 
+                                                            onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorL(this.value)" 
+                                                            onblur="sumatoriaDiasL(this.value, {!fesLun});validarRangoLog(this.value);" 
+                                                            onkeypress="return inputLimiter(event,'Numbers');"  >
+                                                    
+                                                </apex:input>
+                                                <apex:actionRegion rendered="{!deslun}">
+                                                    <apex:outputpanel id="plus">
+                                                        <a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                            <apex:image id="theImageLun" value="{!$Resource.abrirLog}" width="15" height="15"  />
+                                                            <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                                <apex:param value="{!lun}" assignTo="{!diaSeleccionadoDescripcion}" name="{!lun}" />
+                                                                <apex:param value="{!wi.asignacionItem }"  name="idItemTrabajo" />
+                                                            </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                            </div>
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate" style="background:{!IF(!not(fesMar),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!mar}" id="mar"/>           
+                                            </apex:facet> 
+                                            
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                
+                                                <apex:input styleClass="slds-input-hbt" html-step="any" size="4"  type="number"  value="{!wi.martes}" html-min="0" html-max="1440"
+                                                            id="martes" required="true" disabled="true"
+                                                            onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorMa(this.value)"
+                                                            onblur="sumatoriaDiasMa(this.value, {!fesMar});validarRangoLog(this.value);" onkeypress="return inputLimiter(event,'Numbers');"> 
+                                                </apex:input>
+                                                <apex:actionRegion rendered="{!desmar}">
+                                                    <apex:outputpanel id="plus1"><a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                        <apex:image id="theImage" value="{!$Resource.abrirLog}" width="15" height="15"  />
+                                                        <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                            <apex:param value="{!mar}" assignTo="{!diaSeleccionadoDescripcion}" name="{!mar}" />
+                                                            <apex:param value="{!wi.asignacionItem }"  name="idItemTrabajo" />
+                                                        </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                            </div>
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate"  style="background:{!IF(!not(fesMie),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!mie}" id="mie"/>           
+                                            </apex:facet> 
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                <apex:input type="number" html-step="any" styleClass="slds-input-hbt"  size="4"  value="{!wi.miercoles}" 
+                                                            html-min="0" html-max="1440" id="miercoles" required="true" disabled="true" onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorMi(this.value)" onblur="sumatoriaDiasMi(this.value, {!fesMie});validarRangoLog(this.value);" onkeypress="return inputLimiter(event,'Numbers');">
+                                                    
+                                                </apex:input>
+                                                
+                                                <apex:actionRegion rendered="{!desmie}">
+                                                    <apex:outputpanel id="plus2"><a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                        <apex:image id="imagemie" value="{!$Resource.abrirLog}" width="15" height="15"  />  
+                                                        <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                            <apex:param value="{!mie}" assignTo="{!diaSeleccionadoDescripcion}" name="{!mie}" />
+                                                            <apex:param value="{!wi.asignacionItem}"  name="idItemTrabajo" />
+                                                        </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                                
+                                            </div>               
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate" style="background:{!IF(!not(fesJue),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!jue}" id="jue"/>           
+                                            </apex:facet> 
+                                            
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                <apex:input type="number" html-step="any" styleClass="slds-input-hbt"  size="4"  value="{!wi.jueves}" html-min="0" 
+                                                            html-max="1440" id="jueves" required="true" disabled="true" onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorJ(this.value)" onblur="sumatoriaDiasJ(this.value, {!fesJue});validarRangoLog(this.value);" onkeypress="return inputLimiter(event,'Numbers');">
+                                                </apex:input>
+                                                <apex:actionRegion rendered="{!desjue}">
+                                                    <apex:outputpanel id="plus3"><a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                        <apex:image id="theImageJueves" value="{!$Resource.abrirLog}" width="15" height="15"  />
+                                                        <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                            <apex:param value="{!jue}" assignTo="{!diaSeleccionadoDescripcion}" name="{!jue}" />
+                                                            <apex:param value="{!wi.asignacionItem }"  name="idItemTrabajo" />
+                                                        </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                            </div>
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate" style="background:{!IF(!not(fesVie),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!vie}" id="vie"/>         
+                                            </apex:facet> 
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                <apex:input type="number" html-step="any" styleClass="slds-input-hbt"  size="4"   value="{!wi.viernes}" html-min="0" 
+                                                            html-max="1440" id="viernes" required="true" disabled="true" onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorV(this.value)" onblur="sumatoriaDiasV(this.value, {!fesVie});validarRangoLog(this.value);" onkeypress="return inputLimiter(event,'Numbers');">
+                                                </apex:input>   
+                                                <apex:actionRegion rendered="{!desvie}">
+                                                    <apex:outputpanel id="plus4"><a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                        <apex:image id="theImageJue" value="{!$Resource.abrirLog}" width="15" height="15"  />
+                                                        <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                            <apex:param value="{!vie}" assignTo="{!diaSeleccionadoDescripcion}" name="{!vie}" />
+                                                            <apex:param value="{!wi.asignacionItem }"  name="idItemTrabajo" />
+                                                        </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                            </div>                                                          
+                                        </apex:column>
+                                        
+                                        <apex:column headerClass="slds-text-title_caps slds-text-align_center"  styleClass="slds-truncate" style="background:{!IF(!not(fesSab),'#DCDCDC','')}">
+                                            <apex:facet name="header" >
+                                                <apex:outputText value="{!sab}" id="sab"/>           
+                                            </apex:facet> 
+                                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_right">
+                                                <apex:input type="number" html-step="any" styleClass="slds-input-hbt"  size="4"  value="{!wi.sabado}" 
+                                                            html-min="0" html-max="1440" id="sabado" required="true" disabled="true" onchange="DescartarLogs(this.id);validarCampos();" onfocus="valorAnteriorS(this.value)" onblur="sumatoriaDiasS(this.value);validarRangoLog(this.value);" onkeypress="return inputLimiter(event,'Numbers');">
+                                                </apex:input> 
+                                                
+                                                <apex:actionRegion rendered="{!dessab}">
+                                                    <apex:outputpanel id="plus5">
+                                                        <a title="Comentario" data-toggle="modal" data-target="#ModalDescripcionLog" onclick="openModalDescripcionLog();">
+                                                            <apex:image id="theImageVie" value="{!$Resource.abrirLog}" width="15" height="15"  />
+                                                            <apex:actionSupport event="onclick" action="{!agregarDescripcion}" reRender="modalDescripcion,mjenoresult">
+                                                                <apex:param value="{!sab}" assignTo="{!diaSeleccionadoDescripcion}" name="{!sab}" />
+                                                                <apex:param value="{!wi.asignacionItem }"  name="idItemTrabajo" />
+                                                            </apex:actionSupport>
+                                                        </a></apex:outputpanel>  
+                                                </apex:actionRegion>
+                                            </div>   
+                                        </apex:column>
+                                    </apex:pageBlockTable>
+                                </apex:outputPanel>
+                                <br />
+                                <div  style="text-align:center;">
+                                    <apex:outputPanel id="myButtons" styleClass="slds-tile__title slds-truncate">  
+                                        Mostrando Página # {!pageNumber} de {!totalPages}    
+                                        <br />
+                                        <apex:actionFunction name="Beginning" action="{!Beginning}"/>
+                                        <apex:commandButton id="primeraPag" title="Beginning" value="<<" disabled="{!disablePrevious}" reRender="resultados,myButtons,datosResultado,mjenoresult" styleClass="slds-button slds-button_neutral" onClick="alertError('true','primeraPag');" oncomplete="mostrarModalDescartados();"/>
+                                        <apex:actionFunction name="Previous" action="{!Previous}"/>
+                                        <apex:commandButton id="anteriorPag" title="Previous" value="<" disabled="{!disablePrevious}" reRender="resultados,myButtons,datosResultado,mjenoresult" styleClass="slds-button slds-button_neutral" onClick="alertError('true','anteriorPag');" oncomplete="mostrarModalDescartados();"/>       
+                                        <apex:actionFunction name="Next" action="{!Next}"/>
+                                        <apex:commandButton id="siguientePag" title="Next" value=">" disabled="{!disableNext}" reRender="resultados,myButtons,datosResultado,mjenoresult" styleClass="slds-button slds-button_neutral" onClick="alertError('true','siguientePag');" oncomplete="mostrarModalDescartados();"/>
+                                        <apex:actionFunction name="End" action="{!End}"/>
+                                        <apex:commandButton id="ultimaPag" title="End" value=">>" disabled="{!disableNext}" reRender="resultados,myButtons,datosResultado,mjenoresult" styleClass="slds-button slds-button_neutral" onClick="alertError('true','ultimaPag');" oncomplete="mostrarModalDescartados();"/>                                                       
+                                    </apex:outputPanel>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:outputPanel>    
+                
+            </apex:pageBlock>
+            
+            <div id="msjNoProys" style="text-align:center;">
+                <apex:outputLabel value="No existen proyectos ni items de trabajo asociados al usuario actualmente" rendered="{!blnNoProys}" />
+            </div>
+            
+        </apex:form>
+        
+        <apex:form id="modalLog">
+            <section id="ModalDescripcionLog" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal ">
+                <apex:outputPanel styleClass="slds-modal__container" id="modalDescripcion" style="max-width: 60rem;">
+                    <header class="slds-modal__header">
+                        <button type="button" class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Cerrar" rerender="nuevoLog,detalleLogs" onclick="closeModalDescripcionLog(); activarInputs()">
+                            <c:HBT_Imagenes styleClass="slds-button__icon slds-button__icon_large" 
+                                            path="/assets/icons/utility-sprite/svg/symbols.svg#close" />
+                            <span class="slds-assistive-text">Cerrar</span>
+                        </button>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!diaSeleccionadoDescripcion}</h2>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!nombreItem}</h2>  
+                    </header>
+                    <apex:outputPanel styleClass="slds-modal__content slds-p-around_medium">
+                        <div class="slds-tabs_scoped">
+                            <ul class="slds-tabs_scoped__nav" role="tablist">
+                                <li class="slds-tabs_scoped__item slds-active" title="Ver detalle" role="presentation"><a class="slds-tabs_scoped__link"  role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-scoped-12" id="tab-scoped-2__item" onclick="cambioTabModal(this);btnDisabled4();">Ver detalle</a></li>
+                                <li class="slds-tabs_scoped__item " title="Agregar log o descripción" role="presentation"><a class="slds-tabs_scoped__link"  role="tab" tabindex="0" aria-selected="true" aria-controls="tab-scoped-11" id="tab-scoped-1__item" onclick="cambioTabModal(this);btnDisabled3();">Agregar detalle</a></li>
+                            </ul>
+                            <div id="tab-scoped-11" class="slds-tabs_scoped__content slds-hide" role="tabpanel" aria-labelledby="tab-scoped-1__item">
+                                <apex:pageBlock id="nuevoLog" >
+                                    <script>
+                                    var $buttonG3 = jQuery('[id*=btnGuardar3]');
+                                    $buttonG3.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+                                    </script>
+                                    Registrar Tiempo Básico del Turno &nbsp;&nbsp; <apex:inputCheckbox styleClass="slds-checkbox_faux" style="text-align:center;" 
+                                                                                                       value="{!seleccionindicadorTurnoBasico}" onchange="btnEnabled3();" disabled="{!not(indicadorTurnoBasico)}" />
+                                    <br /> <br /> <br /> 
+                                    
+                                    <script>
+                                    function btnDisabled3(){
+                                        var $buttonG3 = jQuery('[id*=btnGuardar3]');
+                                        $buttonG3.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+                                        var $buttonG4 = jQuery('[id*=btnGuardar4]');
+                                        $buttonG4.toggleClass('btnDisabled', false).attr('disabled', 'disabled');  
+                                    }
+                                    </script>
+                                    
+                                    
+                                    
+                                </apex:pageBlock>
+                                <br />
+                                <div style="align:rigth;">
+                                    <apex:commandButton value="Agregar" id="btnGuardar3" styleClass="slds-button slds-button_brand" action="{!adicionarLog}"
+                                                        reRender="datosResultado,mjenoresult" onclick="validarFormModal()"/>
+                                    
+                                    <button type="button" id='btnCerrar' class="slds-button slds-button_neutral" data-dismiss="modal" onclick="closeModalDescripcionLog(); activarInputs();" >Cancelar</button>
+                                </div>
+                            </div>
+                            <div id="tab-scoped-12" class="slds-tabs_scoped__content slds-show" role="tabpanel" aria-labelledby="tab-scoped-2__item">
+                                <apex:pageBlock id="detalleLogs" >
+                                    <script>
+                                    var $buttonG4 = jQuery('[id*=btnGuardar4]');
+                                    $buttonG4.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+                                    </script>
+                                    <div id="tab-default-2" class="slds-tabs_default__content slds-hide" role="tabpanel" aria-labelledby="tab-default-2__item">                                             
+                                        <!--         <c:INT_Mensajes_Page id="mensajesModIteracion" listaMensajes="{!mensajesError}"/>-->
+                                    </div>
+                                    <apex:variable value="{!1}" var="rowIndex" />                                       
+                                    <apex:pageBlockTable value="{!logsConsultados}" var="wi">
+                                        <apex:column headerValue="Comentario" headerClass="slds-text-title_caps" style="text-align: center; ">
+                                            <apex:inputTextarea id="comentarioDetalle" styleClass="slds-input-hbt" style="text-align:left; width:100%;"
+                                                                html-maxlength="255" value="{!wi.comentarioLog}" onchange="validarComentarioDetalle({!wi.esHoraAdicional},this.value);btnEnabled4();" rows="1" 
+                                                                required="false" disabled="true">                                               
+                                            </apex:inputTextarea>
+                                        </apex:column>
+                                        <apex:column headerValue="Tiempo" headerClass="slds-text-title_caps slds-text-align_center">
+                                            <center><apex:input type="number" style="text-align:center;" styleClass="slds-input-hbt" html-min="0" html-max="24" html-step="any"
+                                                                value="{!wi.logDia}" onchange="validarRangoLogModal(this.value);btnEnabled4();" 
+                                                                onkeypress="return inputLimiter(event,'Numbers');" />
+                                            </center>
+                                        </apex:column> 
+                                        <apex:inputHidden id="idLog" value="{!wi.idLog}"/>
+                                        <apex:inputHidden id="fechaLog" value="{!wi.fechaLog}"/>    
+                                        <apex:variable var="rowIndex" value="{!rowIndex + 1}"/> 
+                                    </apex:pageBlockTable>
+                                    <script>
+                                    function btnDisabled4(){
+                                        var $buttonG4 = jQuery('[id*=btnGuardar4]');
+                                        $buttonG4.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+                                        var $buttonG3 = jQuery('[id*=btnGuardar3]');
+                                        $buttonG3.toggleClass('btnDisabled', false).attr('disabled', 'disabled');
+                                        
+                                    }
+                                    </script>                                          
+                                </apex:pageBlock>
+                                <br />
+                                <apex:outputPanel style="align:center;">
+                                    
+                                    <apex:commandButton value="Modificar" id="btnGuardar4" styleClass="slds-button slds-button_brand" action="{!guardarDescripcion}" 
+                                                        reRender="datosResultado,mjenoresult" onclick="validarFormModal()"/> 
+                                    
+                                    
+                                    <button type="button" id='btnCerrar' class="slds-button slds-button_neutral" data-dismiss="modal" onclick="closeModalDescripcionLog(); activarInputs();" >Cancelar</button>
+                                </apex:outputPanel>
+                            </div>
+                        </div>
+                    </apex:outputPanel> 
+                    
+                </apex:outputPanel>
+            </section>
+            <div id="slds-backdrop" class="slds-backdrop"></div>
+        </apex:form>            
+        
+        
+        <apex:form >
+            <section id="ModalMensaje3"  role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button type="button" class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Cerrar" onclick="launchWindow();closeModalMensaje3();">
+                            <c:HBT_Imagenes styleClass="slds-button__icon slds-button__icon_large" 
+                                            path="/assets/icons/utility-sprite/svg/symbols.svg#close" />
+                            <span class="slds-assistive-text">Cerrar</span>
+                        </button>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Advertencia</h2>
+                    </header>
+                    <apex:outputPanel styleClass="slds-modal__content slds-p-around_medium" id="modalMensaje3">
+                        <apex:outputText value="{!alertMsg}" />  
+                    </apex:outputPanel>
+                    <footer class="slds-modal__footer">
+                        <button type="button" id='btnCerrar' class="slds-button slds-button_neutral" data-dismiss="modal" onclick="launchWindow();closeModalMensaje3();">Aceptar</button>
+                        
+                    </footer>
+                </div>
+            </section>
+            <div id="slds-backdrop2" class="slds-backdrop"></div>
+        </apex:form>
+    </div>
+    
+    <script>
+    var $=jQuery.noConflict();
+    $(function() {
+        
+        $('#dp').datepicker({
+            maxDate: new Date(),
+            onSelect: function(dateText, inst) {
+                var monthDay=new Array();
+                monthDay['Jan']="Enero";
+                monthDay['Feb']="Febrero";
+                monthDay['Mar']="Marzo";
+                monthDay['Apr']="Abril";
+                monthDay['May']="Mayo";
+                monthDay['Jun']="Junio";
+                monthDay['Jul']="Julio";
+                monthDay['Aug']="Agosto";
+                monthDay['Sep']="Septiembre";
+                monthDay['Oct']="Octubre";
+                monthDay['Nov']="Noviembre";
+                monthDay['Dec']="Diciembre";
+                var seldate = $(this).datepicker('getDate');
+                seldate = seldate.toDateString();
+                seldate = seldate.split(' ');
+                if(seldate[0]=='Sun'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2.setDate(date2.getDate()+6); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()+1); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()+2); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()+3); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()+4); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()+5); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');
+                }
+                if(seldate[0]=='Mon'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1.setDate(date1.getDate()-1); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2.setDate(date2.getDate()+5); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()+1); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()+2); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()+3); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()+4); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');
+                }
+                if(seldate[0]=='Tue'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1.setDate(date1.getDate()-2); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2.setDate(date2.getDate()+4); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()-1); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()+1); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()+2); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()+3); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');   
+                }
+                if(seldate[0]=='Wed'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1.setDate(date1.getDate()-3); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2.setDate(date2.getDate()+3); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()-2); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()-1); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()+1); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()+2); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');
+                }
+                if(seldate[0]=='Thu'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1.setDate(date1.getDate()-4); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2.setDate(date2.getDate()+2); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()-3); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()-2); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()-1); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()+1); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');
+                }
+                if(seldate[0]=='Fri'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1.setDate(date1.getDate()-5); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2.setDate(date2.getDate()+1); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()-4); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()-3); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()-2); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()-1); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');
+                }
+                if(seldate[0]=='Sat'){
+                    var date1 = $(this).datepicker('getDate'); 
+                    date1.setDate(date1.getDate()-6); 
+                    date1 = date1.toDateString();
+                    date1 = date1.split(' ');
+                    var date2 = $(this).datepicker('getDate'); 
+                    date2 = date2.toDateString();
+                    date2 = date2.split(' ');
+                    
+                    var datema = $(this).datepicker('getDate'); 
+                    datema.setDate(datema.getDate()-5); 
+                    datema = datema.toDateString();
+                    datema = datema.split(' ');
+                    
+                    var datemi = $(this).datepicker('getDate'); 
+                    datemi.setDate(datemi.getDate()-4); 
+                    datemi = datemi.toDateString();
+                    datemi = datemi.split(' ');
+                    
+                    var dateju = $(this).datepicker('getDate'); 
+                    dateju.setDate(dateju.getDate()-3); 
+                    dateju = dateju.toDateString();
+                    dateju = dateju.split(' ');
+                    
+                    var datevi = $(this).datepicker('getDate'); 
+                    datevi.setDate(datevi.getDate()-2); 
+                    datevi = datevi.toDateString();
+                    datevi = datevi.split(' ');
+                    
+                    var datesa = $(this).datepicker('getDate'); 
+                    datesa.setDate(datesa.getDate()-1); 
+                    datesa = datesa.toDateString();
+                    datesa = datesa.split(' ');
+                }
+                $('[id$=rangoFecha]').text(monthDay[date1[1]] + ' ' + date1[2] + ' a ' + monthDay[date2[1]] + ' ' + date2[2]);
+            },
+            onClose: function(dateText, inst) {
+                $('[id$=myHiddenField]').val(dateText);
+                getdias();
+            },
+        });
+        $('#mylink').click(function(){
+            var x = $("#mylink").position();
+            $('#dp').datepicker('show');
+            $('#ui-datepicker-div').css("top",x.top+60);
+            $('#ui-datepicker-div').css("left",x.left+100);
+        });    
+    });
+    
+    function currencyFormat (num) {
+        return "$" + num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1,")
+    }
+    
+    if(document.getElementsByClassName('t1') !=  undefined )
+        if(document.getElementsByClassName('t1')[0] !=  undefined )
+            document.getElementsByClassName('t1')[0].innerHTML = '{!totallunes}';
+    
+    if(document.getElementsByClassName('t2') !=  undefined )
+        if(document.getElementsByClassName('t2')[0] !=  undefined )
+            document.getElementsByClassName('t2')[0].innerHTML = '{!totalmartes}';
+    
+    if(document.getElementsByClassName('t3') !=  undefined )
+        if(document.getElementsByClassName('t3')[0] !=  undefined )
+            document.getElementsByClassName('t3')[0].innerHTML = '{!totalmiercoles}';
+    
+    if(document.getElementsByClassName('t4') !=  undefined )
+        if(document.getElementsByClassName('t4')[0] !=  undefined )
+            document.getElementsByClassName('t4')[0].innerHTML = '{!totaljueves}';
+    
+    if(document.getElementsByClassName('t5') !=  undefined )
+        if(document.getElementsByClassName('t5')[0] !=  undefined )
+            document.getElementsByClassName('t5')[0].innerHTML = '{!totalviernes}';
+    
+    if(document.getElementsByClassName('t6') !=  undefined )
+        if(document.getElementsByClassName('t6')[0] !=  undefined )
+            document.getElementsByClassName('t6')[0].innerHTML = '{!totalsabado}';
+    
+    if(document.getElementsByClassName('t7') !=  undefined )
+        if(document.getElementsByClassName('t7')[0] !=  undefined )
+            document.getElementsByClassName('t7')[0].innerHTML = '{!totaldomingo}';
+    
+    if(document.getElementsByClassName('t1') !=  undefined )
+        if(document.getElementsByClassName('t1')[0] !=  undefined )
+            document.getElementsByClassName('t1')[0].innerHTML = '{!restantelunes}';
+    
+    if(document.getElementsByClassName('t2') !=  undefined )
+        if(document.getElementsByClassName('t2')[0] !=  undefined )
+            document.getElementsByClassName('t2')[0].innerHTML = '{!restantemartes}';
+    
+    if(document.getElementsByClassName('t3') !=  undefined )
+        if(document.getElementsByClassName('t3')[0] !=  undefined )
+            document.getElementsByClassName('t3')[0].innerHTML = '{!restantemiercoles}';
+    
+    if(document.getElementsByClassName('t4') !=  undefined )
+        if(document.getElementsByClassName('t4')[0] !=  undefined )
+            document.getElementsByClassName('t4')[0].innerHTML = '{!restantejueves}';
+    
+    if(document.getElementsByClassName('t5') !=  undefined )
+        if(document.getElementsByClassName('t5')[0] !=  undefined )
+            document.getElementsByClassName('t5')[0].innerHTML = '{!restanteviernes}';
+    
+    if(document.getElementsByClassName('t6') !=  undefined )
+        if(document.getElementsByClassName('t6')[0] !=  undefined )
+            document.getElementsByClassName('t6')[0].innerHTML = '{!restantesabado}';
+    
+    if(document.getElementsByClassName('t7') !=  undefined )
+        if(document.getElementsByClassName('t7')[0] !=  undefined )
+            document.getElementsByClassName('t7')[0].innerHTML = '{!restantedomingo}';
+    </script>
+    
+</apex:page>

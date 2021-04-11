@@ -1,0 +1,125 @@
+<apex:page controller="HBT_GenerarNovedadesNominaController" docType="html-5.0" applyBodyTag="false" 
+           standardStylesheets="false" readOnly="true" lightningStylesheets="true">
+    
+    <!-- Lightning Design System Source -->
+    <apex:slds />
+    
+    <c:HBT_StatusLoading />
+    <apex:includeScript value="{!URLFOR($Resource.HBT_Recursos,'/JQuery/jquery-3.2.1.min.js')}" />
+    
+    
+    
+    <div class="slds-scope">
+        <apex:form >
+            <!----------------Header---------------->
+            <div class="slds-page-header" style="margin:1%">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-carousel">
+                            <svg aria-hidden="true" class="slds-icon slds-page-header__icon" style="cursor: pointer;">
+                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/standard-sprite/svg/symbols.svg#report')}" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Generar Novedades Nomina">Generar Novedades Nomina</h1>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <!------------mensajes----------------->
+            <apex:outputPanel id="mensajeppal">
+                <c:HBT_Mensajes_Page id="mensajeGlobal" listaMensajes="{!mensajesError}"/>
+            </apex:outputPanel>
+            <!----------------Fin mensaje ------------>
+            <br />
+            <div class="container-fluid">
+                <br/><br/>
+                
+                <div class="slds-grid slds-grid--align-center">
+                    
+                    
+                    <div class="slds-form-element" style="width: 13rem;">                                
+                        <label class="slds-form-element__label" for="proyectos-01">
+                            <abbr class="slds-required" title="requerido">*</abbr>
+                            Seleccione el frente:</label>
+                        <div class="slds-form-element__control">
+                            <div class="slds-select_container">
+                                <apex:selectList value="{!frenteSelected}" multiselect="false" size="1" styleClass="slds-select">
+                                    <apex:selectOptions value="{!frentes}"/> 
+                                </apex:selectList>  
+                            </div>
+                        </div>
+                    </div>
+                    &nbsp;  &nbsp;  &nbsp; 
+                    <div class="slds-form-element" style="width: 13rem;">                                
+                        <label class="slds-form-element__label" for="proyectos-01">
+                            <abbr class="slds-required" title="requerido">*</abbr>
+                            Seleccione el mes:</label>
+                        <div class="slds-form-element__control">
+                            <div class="slds-select_container">
+                                <apex:selectList value="{!selectedmes}" multiselect="false" size="1" styleClass="slds-select">
+                                    <apex:selectOptions value="{!items}"/> 
+                                </apex:selectList>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    <div class="slds-grid slds-grid--align-center">
+                    
+                    &nbsp;  &nbsp;  &nbsp; 
+                    <div class="slds-form-element" style="width: 13rem;">                                
+                        <label class="slds-form-element__label" for="proyectos-01">
+                            <abbr class="slds-required" title="requerido">*</abbr>
+                            Seleccione el periodo:</label>
+                        <div class="slds-form-element__control">
+                            <div class="slds-select_container">
+                                <apex:selectList id="annio-01" value="{!periodoSeleccionado}" size="1" styleClass="slds-select">
+                                    <apex:selectOption itemValue="1" itemLabel="Periodo I"/>
+                                    <apex:selectOption itemValue="2" itemLabel="Periodo II"/>
+                                    
+                                </apex:selectList>  
+                                
+                            </div>
+                        </div>
+                    </div>
+                    &nbsp;  &nbsp;  &nbsp; 
+                    <div class="slds-form-element">          
+                        <label class="slds-form-element__label" for="annio-01">
+                            <abbr class="slds-required" title="requerido">*</abbr>
+                            Seleccione el año: </label>
+                        <div class="slds-form-element__control">
+                            <div class="slds-select_container">
+                                <apex:selectList value="{!anioSelected}" multiselect="false" size="1" styleClass="slds-select">
+                                    <apex:selectOptions value="{!anios}"/> 
+                                </apex:selectList> 
+                            </div>
+                        </div>
+                    </div>
+                    &nbsp;  &nbsp;  &nbsp; 
+                    <div class="slds-form-element" style="width: 13rem;">                                
+                        <label class="slds-form-element__label" for="proyectos-01">
+                            <abbr class="slds-required" title="requerido">*</abbr>
+                            Seleccione Tipo:</label>
+                        <div class="slds-form-element__control">
+                            <div class="slds-select_container">
+                                <apex:selectList id="tipo" value="{!tipoSeleccionado}" size="1" styleClass="slds-select">
+                                    <apex:selectOption itemValue="Temporal" itemLabel="Temporal"/>
+                                    <apex:selectOption itemValue="Directo" itemLabel="Directo"/>
+                                </apex:selectList>  
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="slds-grid slds-grid--align-center">   
+                <apex:commandButton value="Generar Archivo" styleClass="slds-button slds-button_neutral" 
+                                    action="{!generarArchivo}"/>
+            </div>
+        </apex:form>
+
+    </div>
+    
+</apex:page>

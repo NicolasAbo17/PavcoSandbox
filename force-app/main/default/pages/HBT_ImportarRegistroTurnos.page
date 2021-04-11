@@ -1,0 +1,271 @@
+<apex:page docType="html-5.0" controller="HBT_ImportarRegistroTurnosController" label="Importar Registros de Turnos">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" />
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <!-- Lightning Design System Source -->
+    <apex:slds />
+    <style> 
+        
+        input[type=date]::-webkit-inner-spin-button, 
+        input[type=date]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+        }
+        input[type=date] {
+        -moz-appearance:textfield;
+        }
+        
+        
+    </style> 
+      <script type="text/javascript"> 
+            window.onload = setFocus;
+            
+            // Se declara variable de sesión para AJAX Toolkit              
+            var __sfdcSessionId = '{!GETSESSIONID()}';            
+            
+            var j$ = jQuery.noConflict();            
+            
+            var assets = '{!URLFOR($Asset.SLDS)}';
+            
+            //Inicializacion de fechas
+            j$(document).ready(function() {
+
+                /*  window.addEventListener("load",function(){
+                setTimeout(function(){
+                j$('#fechaInicial').focus();
+                }, 100);  // 0.1 seconds after load time.
+                });*/
+
+                //Inicializa el campo de fecha de iteracion
+                j$('#fechaInicio').datepicker({
+                    //  var date = new Date();
+                    // var primerDia = new Date(date.getFullYear(), date.getMonth(), 1);
+                    numYearsBefore: 1,
+                    numYearsAfter: 5,
+                    format: 'DD/MM/YYYY',
+                    
+                    
+                }); 
+                
+                j$('#fechaFin').datepicker({
+                    //   var date = new Date();
+                    //var ultimoDia = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                    numYearsBefore: 1,
+                    numYearsAfter: 5,
+                    format: 'DD/MM/YYYY',
+                    initDate: ultimoDia,
+                    
+                    
+                });
+                
+            });
+    
+    function openModalEliminarCargue(){   
+        
+        j$('#slds-backdrop').addClass('slds-backdrop--open');
+        j$('#ModalEliminarCargue').addClass('slds-fade-in-open');
+    }  
+    function closeModalEliminarCargue(){
+        j$('#ModalEliminarCargue').removeClass('slds-fade-in-open');
+        j$('#slds-backdrop').removeClass('slds-backdrop--open');               
+    }
+            
+            </script> 
+    <c:HBT_StatusLoading />
+    <apex:includeScript value="{!URLFOR($Resource.HBT_Recursos,'/JQuery/jquery-3.2.1.min.js')}" />
+    
+    <div class="slds-scope">
+        <apex:form id="formOut">
+            <!----------------Header---------------->
+            <div class="slds-page-header" style="margin:1%">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-carousel">
+                            <svg aria-hidden="true" class="slds-icon slds-page-header__icon" style="cursor: pointer;">
+                                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/standard-sprite/svg/symbols.svg#timesheet_entry')}" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="Importar Registros de Turnos">Importar Registros de Turnos</h1>
+                    </div>
+                </div>
+            </div>
+            <!------------mensajes----------------->
+            <apex:outputPanel id="mensajeppal">
+                <c:HBT_Mensajes_Page id="mensajeGlobal" listaMensajes="{!mensajesError}"/>
+            </apex:outputPanel>
+            <!----------------Fin mensaje ------------>
+            <br />
+            <apex:outputPanel id="contenido">
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-p-horizontal_medium slds-size_3-of-6">
+                        
+                        <fieldset class="slds-box slds-theme--default slds-container--large">
+                            
+                            <legend class="slds-text-heading--medium slds-p-vertical--medium">
+                                <div class="slds-p-horizontal--small slds-size--1-of-1 slds-m-top--medium">
+                                    <h3 class="slds-text-heading--small slds-m-bottom--medium"><b>PASO 1</b></h3>
+                                </div>
+                            </legend>
+                            <center>
+                                <div class="slds-grid slds-wrap">
+                                    <div class="slds-col slds-p-horizontal_medium slds-size_1-of-3">                                
+                                        <label class="slds-form-element__label" for="proyectos-01">
+                                            <abbr class="slds-required" title="requerido">*</abbr>
+                                            Seleccione un frente:</label>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-select_container">
+                                                <apex:selectList value="{!frenteSelected}" multiselect="false" size="1" rendered="true" styleClass="slds-select">
+                                                    <apex:selectOptions value="{!frentes}"/> 
+                                                </apex:selectList>  
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-p-horizontal_medium slds-size_1-of-3">                 
+                                        <label class="slds-form-element__label" for="proyectos-01">
+                                            <abbr class="slds-required" title="requerido">*</abbr>
+                                            Seleccione fecha inicio:</label>
+                                        <div class="slds-form-element__control">
+                                            <apex:input type="date" id="fechainicial" value="{!fechaInicioFiltro}" styleClass="slds-input" label="Fecha desde (*)" />
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-p-horizontal_medium slds-size_1-of-3">                 
+                                        <label class="slds-form-element__label" for="proyectos-01">
+                                            <abbr class="slds-required" title="requerido">*</abbr>
+                                            Seleccione fecha fin:</label>
+                                        <div class="slds-form-element__control">
+                                            <apex:input type="date" id="fechafinal" value="{!fechaFinFiltro}" styleClass="slds-input" label="Fecha hasta (*)" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <br/>
+                                <h3>Cargue el archivo e importe los registros para su validación</h3>
+                                <br/>
+                                
+                                <apex:inputFile id="csvAsString" value="{!csvFileBody}" filename="{!csvAsString}" accept=".csv"/>
+                                <br/>
+                                <br/>
+                                <apex:commandButton action="{!cargarArchivo}"  value="Importar Registros" 
+                                                    styleClass="slds-button slds-button_neutral" style="width: 60%" 
+                                                    onclick="showLoadingDialog();"/>
+                            </center>
+                        </fieldset>
+                        
+                    </div>
+                    <div class="slds-col slds-p-horizontal_medium slds-size_3-of-6">
+                        <fieldset class="slds-box slds-theme--default slds-container--large">
+                            
+                            <legend class="slds-text-heading--medium slds-p-vertical--medium">
+                                <div class="slds-p-horizontal--small slds-size--1-of-1 slds-m-top--medium">
+                                    <h3 class="slds-text-heading--small slds-m-bottom--medium"><b>PASO 2</b></h3>
+                                </div>
+                            </legend>
+                            <center>
+                                <br/>
+                                <h3>Guarde los registro de los turnos sólo si toda la información está correcto</h3>
+                                <br/>
+                                <br/>
+                                <apex:commandButton value="Guardar" action="{!guardarRegistros}" disabled="{!not(habilitarBoton)}" 
+                                                    styleClass="slds-button slds-button_neutral" 
+                                                    onclick="showLoadingDialog();"/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                                <br/>
+                            </center>
+                        </fieldset>
+                        
+                    </div>
+                </div>
+            </apex:outputPanel>
+        </apex:form>
+        <apex:form >
+            <apex:outputPanel id="contenido1">
+                <div class="slds-grid slds-wrap">
+                     <apex:actionRegion id="region">
+                    <div class="slds-col slds-p-horizontal_medium slds-size_3-of-6">
+                        <fieldset class="slds-box slds-theme--default slds-container--large">
+                            
+                            <legend class="slds-text-heading--medium slds-p-vertical--medium">
+                                <div class="slds-p-horizontal--small slds-size--1-of-1 slds-m-top--medium">
+                                    <h3 class="slds-text-heading--small slds-m-bottom--medium"><b>Eliminación de cargues</b></h3>
+                                </div>
+                            </legend>
+                            <center>
+                                <div class="slds-col slds-p-horizontal_medium slds-size_2-of-3">
+                                    <label class="slds-form-element__label" for="proyectos-01">
+                                        <abbr class="slds-required" title="requerido">*</abbr>
+                                        Seleccione el archivo cargado que desea eliminar:</label>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-select_container">
+                                            <apex:selectList value="{!archivoSelected}" multiselect="false" size="1" rendered="true" styleClass="slds-select">
+                                                <apex:selectOptions value="{!archivosCargados}"/> 
+                                            </apex:selectList>  
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <br/>
+                                <apex:commandButton value="Eliminar registros cargados" onclick="openModalEliminarCargue()"  reRender="ModalEliminarCargue"
+                                                    styleClass="slds-button slds-button_neutral" />
+                                <br/>
+                            </center>
+                        </fieldset>
+                    </div>
+                    
+                   
+                        <div class="slds-col slds-p-horizontal_medium slds-size_3-of-6">
+                            <fieldset class="slds-box slds-theme--default slds-container--large">
+                                
+                                <legend class="slds-text-heading--medium slds-p-vertical--medium">
+                                    <div class="slds-p-horizontal--small slds-size--1-of-1 slds-m-top--medium">
+                                        <h3 class="slds-text-heading--small slds-m-bottom--medium"><b>Verificación de errores</b></h3>
+                                    </div>
+                                </legend>
+                                <center>
+                                    <br/>
+                                    <h3 style="color:red;">Descargue el archivo con los errores encontrados:</h3>
+                                    <br/>
+                                    <br/>
+                                    <apex:commandButton value="Obtener Archivo" action="{!generarArchivo}" rendered="{!listaRegistrosError.size>0}"
+                                                        styleClass="slds-button slds-button_neutral"/>
+                                    <br/>
+                                </center>
+                            </fieldset>
+                        </div>
+                        
+                    </apex:actionRegion>
+                </div>
+            </apex:outputPanel>
+        </apex:form>
+        <apex:form id="modalEliminar">
+               <section id="ModalEliminarCargue" role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal">
+                   <div class="slds-modal__container">
+                       <header class="slds-modal__header">
+                           <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Cerrar"  onclick="closeModalMensaje4();">
+                               <c:HBT_Imagenes styleClass="slds-button__icon slds-button__icon_large" 
+                                                  path="/assets/icons/utility-sprite/svg/symbols.svg#close" />
+                               <span class="slds-assistive-text">Cerrar</span>
+                           </button>
+                           <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Advertencia</h2>
+                       </header>
+                       <div class="slds-modal__content slds-p-around_medium" id="modalMensaje6">
+                           <apex:outputText value="¿Esta seguro que desea eliminar el cargue?"/>  
+                       </div>
+                       <footer class="slds-modal__footer">
+                           <apex:commandButton value="Eliminar" action="{!eliminarCargue}" styleClass="slds-button slds-button_brand" />
+                           <button  id='btnCerrar' class="slds-button slds-button_neutral" data-dismiss="modal" onclick="closeModalEliminarCargue();">Cerrar</button>
+                           
+                       </footer>
+                   </div>
+               </section>
+               <div id="slds-backdrop" class="slds-backdrop"></div>
+           </apex:form>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+</apex:page>
