@@ -15,43 +15,35 @@ global class HBT_ImportarRegistroTurnosController {
     //mensajes modal
     public List<HBT_MensajesPagina> mensajesError {get;set;}
     //Listas para almacenar temporalmente los registros durante el proceso de validación
-    private list <registroAlmacenar> listaRegistros {get;set;}
-    public list <registroAlmacenar> listaRegistrosError {get;set;}
-    private list <registroAlmacenar> listaRegistrosTemp {get;set;}
+    private List<registroAlmacenar> listaRegistros {get;set;}
+    public List<registroAlmacenar> listaRegistrosError {get;set;}
+    private List<registroAlmacenar> listaRegistrosTemp {get;set;}
     private Map <String,HBT_Asociacion_Empleado_Frente__c> listaEmpleados{get;set;}
     
     //Lista para almacenar los id de los registros a modificar y consultar en la bd que sí existan
-    private list <String> idRegistrosModificar {get;set;}
+    private List<String> idRegistrosModificar {get;set;}
     
     //Atributo para habilitar el botón de Importar en la página, sólo hasta que todos los registros hayan pasado las validaciones
     public Boolean habilitarBoton {get;set;}
     public Boolean habilitarBotonEliminar {get;set;}
     //atributos para manejar los días festivos de un año
     public Map <String, Boolean> diasFestivos {get;set;}
-    
-    //    private string fechaIncial;
-    //    private string fechaFinal;
-    //parametros calculo horas extra
-    private Time inicioRecargoNocturno;
-    private boolean esNocturno;
-    private boolean esFestivo;
-    private boolean esFestivoManana;
-    private Decimal duracionTurno;
-    private Decimal cantidadHorasTrabajadas;
+
 
     // soporte horas fijas
-    private static Integer inicioHoraNocturna = 21;
-    private static Integer inicioHoraDiurna = 6;
+    private static Integer horaNocturna = 21;
+    private static Integer horaDiurna = 6;
+    private static Integer medianoche = 0;
     
     //método constructor
     public HBT_ImportarRegistroTurnosController(){
         habilitarBotonEliminar=false;
         mensajesError = new List<HBT_MensajesPagina>();
         habilitarBoton = false;
-        listaRegistros = new list <registroAlmacenar>();
-        listaRegistrosError = new list <registroAlmacenar>();
-        listaRegistrosTemp = new list <registroAlmacenar>();
-        idRegistrosModificar = new list <String>();
+        listaRegistros = new List<registroAlmacenar>();
+        listaRegistrosError = new List<registroAlmacenar>();
+        listaRegistrosTemp = new List<registroAlmacenar>();
+        idRegistrosModificar = new List<String>();
         diasFestivos = new Map <String, Boolean>();
     }
     
@@ -196,7 +188,7 @@ global class HBT_ImportarRegistroTurnosController {
                 validarRegistros();
                 
             }else{
-                mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.ERROR,'La fecha fin debe ser mayor o igual a la fecha inicio.'));
+                mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.ERROR,'La fecha fin debe ser nuevoFinal o igual a la fecha inicio.'));
             }
         }else{
             mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.ERROR,'Los valores de fecha inicio y fecha fin son requeridos para realizar el proceso.'));
@@ -428,15 +420,11 @@ global class HBT_ImportarRegistroTurnosController {
         Integer minutos = Integer.valueof(timeTemp.get(1));
         if(minutos >= 0 && minutos <=15){
             fechaRedondeo= fechaFormato + ' ' + timeTemp.get(0) + ':00:00';
-        }else{
-            if(minutos > 15 && minutos <45){
-                fechaRedondeo= fechaFormato + ' ' + timeTemp.get(0) + ':30:00';
-            }else{
-                if(minutos >= 45  && minutos <= 59){
-                    Integer horaSiguiente = Integer.valueof(timeTemp.get(0)) + 1;
-                    fechaRedondeo= fechaFormato + ' ' + horaSiguiente + ':00:00';
-                }
-            }
+        }else if(minutos > 15 && minutos <45){
+            fechaRedondeo= fechaFormato + ' ' + timeTemp.get(0) + ':30:00';
+        }else if(minutos >= 45  && minutos <= 59){
+            Integer horaSiguiente = Integer.valueof(timeTemp.get(0)) + 1;
+            fechaRedondeo= fechaFormato + ' ' + horaSiguiente + ':00:00';
         }
         
         return fechaRedondeo;
@@ -550,13 +538,11 @@ global class HBT_ImportarRegistroTurnosController {
         // soporte para errores
         mensajesError = new List<HBT_MensajesPagina>();
 
-        // hora de inicio para recargo nocturno
-        inicioRecargoNocturno = time.newInstance(inicioHoraNocturna, 00, 00, 00);
         List<HBT_Registro_Turnos__c> listaTurnos = new List<HBT_Registro_Turnos__c>();
 
         for(registroAlmacenar registro : listaRegistros){
             // identifica al empleado y su frente de trabajo
-            empleadosTemp = listaEmpleados.get(registro.identificacion);
+            HBT_Asociacion_Empleado_Frente__c empleadosTemp = listaEmpleados.get(registro.identificacion);
             
             // guarda al empleado y otra informacion en objeto turno
             HBT_Registro_Turnos__c turno = new HBT_Registro_Turnos__c();
@@ -578,15 +564,18 @@ global class HBT_ImportarRegistroTurnosController {
                 diasFestivos = HBT_Festivos.DiasFestivos(registro.fechaIngreso.yearGMT());
             }
             
-            string dia = obtenerDia(registro.fechaIngreso);            
+            // según el día se asigna la duración del turno
+            string dia = obtenerDia(registro.fechaIngreso);  
+            Decimal duracionTurno = 0;
             if(dia == 'Sat'){
                 duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c;
-            }else{
+            }else if(dia != 'Sun'){
                 duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno__c;
             }
 
-            // booleano que guarda si el registro tiene horas nocturnas
-            esNocturno = obtenerSiEsNocturno(registro.fechaIngreso);
+            // se guarda cuantas horas trabajo el empleado en total, y cuáles de esas fueron extra
+            Decimal cantidadHorasTrabajadas = obtenerTiempoHoras(registro.fechaIngreso, registro.fechaSalida);
+            Decimal horasExtraTrabajadas = cantidadHorasTrabajadas - duracionTurno;
             
             if(registro.esVacio){
                 // caso en que registro esté vacío se guardan todas las horas extras vacías
@@ -604,23 +593,13 @@ global class HBT_ImportarRegistroTurnosController {
                 listaTurnos.add(turno);
                 system.debug('tunro basico '+ listaTurnos);
             }else{
-                
-                esFestivo = obtenerFestivo(turno.Fecha_Registro__c);
-                if(!esFestivo && dia=='Sun'){
-                    esFestivo = true;
-                }
-                esFestivoManana = obtenerFestivo(turno.Fecha_Registro__c.addDays(1));
+                // se guardan si ese día o el siguiente es festivo
                 string diaManana = obtenerDia(registro.fechaIngreso.addDays(1));
-                if(!esFestivoManana &&  diaManana == 'Sun'){
-                    esFestivoManana = true;
-                }
-                if(esFestivo){
-                    duracionTurno= 8;
-                }
-                cantidadHorasTrabajadas = obtenerTiempoHoras(registro.fechaIngreso, registro.fechaSalida);
+
+                boolean esFestivoManana = obtenerFestivo(turno.Fecha_Registro__c.addDays(1)) || diaManana == 'Sun';
+                boolean esFestivo = obtenerFestivo(turno.Fecha_Registro__c) || dia=='Sun';
                 
                 system.debug('/***************************************/');
-                system.debug('nocturno '+esnocturno);
                 system.debug('dia' + dia);
                 system.debug('festivo: '+esFestivo);
                 system.debug('diaManana: ' +diaManana);
@@ -628,16 +607,80 @@ global class HBT_ImportarRegistroTurnosController {
                 system.debug('duracion turno: '+duracionTurno);
                 system.debug('cantidad horas trabajadas: '+cantidadHorasTrabajadas);
                 system.debug('/***************************************/');
-                
+
+                // inicializamos todas las horas extra en 0
                 turno.Duracion__c = cantidadHorasTrabajadas;
-                turno.Horas_Recargo_Nocturno__c = obtenerRecargoNocturno(registro.fechaIngreso);
-                turno.Hora_Extra_Nocturna__c = obtenerExtraNocturna(registro.fechaIngreso,registro.fechaSalida,dia);
-                //  turno.Hora_Recargo_Nocturno_Festivo__c = obtenerRecargoNocturnoFestivo(registro.fechaIngreso);
-                turno.Hora_Extra_Festiva_Nocturna__c = obtenerExtraFestivaNocturna(registro.fechaIngreso,registro.fechaSalida);
-                turno.Hora_Festiva_Dominical__c = obtenerFestivaDominical(registro.fechaIngreso);
-                
-                turno.Hora_Extra_Diurna__c = obtenerExtraDiurna(registro.fechaSalida, dia, registro.fechaIngreso);
-                turno.Hora_Extra_Festiva_Diurnas__c = obtenerExtraFestivaDiurna(registro.fechaIngreso,registro.fechaSalida);
+                turno.Horas_Recargo_Nocturno__c = 0;
+                turno.Hora_Extra_Nocturna__c = 0;
+                turno.Hora_Extra_Festiva_Nocturna__c = 0;
+                turno.Hora_Festiva_Dominical__c = 0;
+                turno.Hora_Extra_Diurna__c = 0;
+                turno.Hora_Extra_Festiva_Diurnas__c = 0;    
+
+                // hora de inicio para distintos rangos horarios
+                Datetime inicioHoraNocturna = Datetime.newInstanceGMT(registro.fechaIngreso.dateGMT(), time.newInstance(horaNocturna, 00, 00, 00));
+                Datetime inicioHoraDiurna = Datetime.newInstanceGMT(registro.fechaIngreso.dateGMT(), time.newInstance(horaDiurna, 00, 00, 00));
+                Datetime inicioMedianoche = Datetime.newInstanceGMT(registro.fechaIngreso.dateGMT(), time.newInstance(medianoche, 00, 00, 00));
+
+                // referencia del final de turno calculado
+                Datetime finalTurno = registro.fechaIngreso.addMinutes((duracionTurno * 60).intValue());
+                Datetime nuevoFinal;
+
+                // cálculo de horas extras si el día de ingreso es festivo
+                if(esFestivo){
+                    nuevoFinal = registro.fechaSalida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: registro.fechaSalida;
+                    turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(registro.fechaIngreso, nuevoFinal);
+                    horasExtraTrabajadas -= turno.Hora_Festiva_Dominical__c;
+                }
+                else{
+                    // se calcula el recargo nocturno
+                    Decimal diferenciaFinalNocturna = obtenerTiempoHoras(inicioHoraNocturna, finalTurno);   
+                    if(diferenciaFinalNocturna >= 0){
+                        turno.Horas_Recargo_Nocturno__c = diferenciaFinalNocturna;
+                    }
+
+                    // se calculan las horas extra diurnas
+                    if(horasExtraTrabajadas > 0){
+                        nuevoFinal = registro.fechaSalida.getTime() > inicioHoraNocturna.getTime()? inicioHoraNocturna: registro.fechaSalida;
+                        turno.Hora_Extra_Diurna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                        horasExtraTrabajadas -= turno.Hora_Extra_Diurna__c;
+                        finalTurno = nuevoFinal;
+                    }
+
+                    // se calculan las horas extra nocturnas
+                    if(horasExtraTrabajadas > 0){
+                        nuevoFinal = registro.fechaSalida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: registro.fechaSalida;
+                        turno.Hora_Extra_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                        horasExtraTrabajadas -= turno.Hora_Extra_Nocturna__c;
+                        finalTurno = nuevoFinal;
+                    }
+                }
+
+                // cálculo de horas extra del siguiente día
+                Decimal horasNuevas;
+                if(horasExtraTrabajadas > 0){
+                    nuevoFinal = registro.fechaSalida.getTime() > inicioHoraDiurna.getTime()? inicioHoraDiurna: registro.fechaSalida;
+                    horasNuevas = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                    if(esFestivoManana){
+                        turno.Hora_Extra_Festiva_Nocturna__c += horasNuevas;
+                    }else{
+                        turno.Hora_Extra_Nocturna__c += horasNuevas; 
+                    }
+                    horasExtraTrabajadas -= horasNuevas;
+                    finalTurno = nuevoFinal;
+                }
+
+                if(horasExtraTrabajadas > 0){
+                    horasNuevas = obtenerTiempoHoras(finalTurno, registro.fechaSalida);
+                    if(esFestivoManana){
+                        turno.Hora_Extra_Festiva_Diurnas__c += horasNuevas;
+                    }else{
+                        turno.Hora_Extra_Diurna__c += horasNuevas; 
+                    }
+                    horasExtraTrabajadas -= horasNuevas;
+                    finalTurno = registro.fechaSalida;
+                }
+
                 system.debug('turnos: '+turno);
                 listaTurnos.add(turno);
             }
@@ -655,370 +698,6 @@ global class HBT_ImportarRegistroTurnosController {
         mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.CONFIRMACION,'Se guardo exitosamente la información.'));
         
     }
-    //Método que obtiene las horas extras festivas diurnas en un turno  
-    private Decimal obtenerExtraFestivaDiurna(Datetime fechaI, Datetime fechaF){
-        if(!esNocturno){
-            if(esFestivo){
-                Decimal duracionTemp = duracionTurno;
-                if(cantidadHorasTrabajadas > 9){
-                    duracionTemp = duracionTurno + 1;
-                }
-                if((cantidadHorasTrabajadas > duracionTemp)){
-                    if( fechaF.hourGmt() <= 21){
-                        Decimal diff = cantidadHorasTrabajadas - duracionTemp;
-                        if(diff > 0){
-                        	return diff;    
-                        }
-                        else{
-                            return 0;
-                        }
-                    }else{
-                      
-                        decimal diffNoche = fechaF.hourGmt() - 21;
-                        Decimal diff = cantidadHorasTrabajadas - 8 - diffNoche;
-                        if(diff > 0){
-                        	return diff;    
-                        }
-                        else{
-                            return 0;
-                        }
-                    }
-                }
-            }else{
-                
-                /*Se comenta esta sección de código, por la lógica no debería ejecutarte ya que el 
-				  flujo anterior cálcula las EFD para todos los casos*/
-                /* 
-                if(fechaF.hourGmt() > 6 && fechaF.hourGmt() < 15){
-                    Time diurno = Time.newInstance(6, 0, 0, 0);
-                    DateTime f = Datetime.newInstance(fechaF.dateGMT(), diurno);
-                    DateTime local = obtenerFechaLocal(f);
-                    Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                    return diffRecargo;
-                }*/
-            }
-            
-        }else{
-            if(esFestivo && esFestivoManana){
-                if(fechaF.hourGMT() > 6){
-                    Time diurno = Time.newInstance(6, 0, 0, 0);
-                    DateTime f = Datetime.newInstance(fechaF.dateGMT(), diurno);
-                    DateTime local = obtenerFechaLocal(f);
-                    Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                    return diffRecargo;
-                }
-            }
-        }
-        
-        return 0;
-    }
-
-    //Método que obtiene las horas extras diurnas en un turno
-    private Decimal obtenerExtraDiurna(Datetime fechaF, String dia, Datetime fechaI){
-       
-        Decimal duracionTemp = duracionTurno;
-        
-        if(!esNocturno){
-            system.debug('cantidadHorasTrabajadas '+cantidadHorasTrabajadas);
-            if(fechaI.hourGmt() < 12 && cantidadHorasTrabajadas > 9){
-                duracionTemp = duracionTurno + 1;
-            }
-            if(!esFestivo){
-                if(fechaF.hourGMT() >= 18 &&  fechaF.hourGMT() <= 21){
-                    
-                    Decimal diff = cantidadHorasTrabajadas - (duracionTemp);
-                    return diff;
-                }else{
-                    if(fechaF.hourGMT() > 21 && fechaF.hourGMT() <= 24){
-                        
-                        Decimal diff = 0;
-                        DateTime f = Datetime.newInstance(fechaF.dateGMT(), inicioRecargoNocturno);
-                        DateTime local = obtenerFechaLocal(f);
-                        Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                        diff = cantidadHorasTrabajadas - duracionTemp - diffRecargo; 
-                        
-                        if(diff > 0){
-                        	return diff;    
-                        }
-                        else{
-                            return 0;
-                        }
-                    }else{
-                        if(fechaF.hourGMT() <= 18){
-                            system.debug('entre aca1');
-                            //return 0;
-                            //csalazar se hace calculo de las horas extras diurnas, ya que se debe validar
-                            //contra la duración del turno.
-                            
-                            Decimal diff = cantidadHorasTrabajadas - duracionTemp;
-                            if(diff > 0){
-                                return diff;    
-                            }
-                            else{
-                                return 0;
-                            }
-                        }else{
-                            
-                            DateTime f = Datetime.newInstance(fechaI.dateGMT(), inicioRecargoNocturno);
-                            DateTime local = obtenerFechaLocal(f);
-                            system.debug(duracionTemp);
-                            Decimal diffRecargo = obtenerTiempoHoras(fechaI,local) - duracionTemp;
-                            return diffRecargo;
-                        }
-                    }
-                }
-            }            
-        }else{
-            if(fechaF.hourGMT() > 6){
-                if(!esFestivo && !esFestivoManana){
-                    Time diurno = Time.newInstance(6, 0, 0, 0);
-                    DateTime f = Datetime.newInstance(fechaF.dateGMT(), diurno);
-                    DateTime local = obtenerFechaLocal(f);
-                    Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                    return diffRecargo;
-                }
-            }
-        }      
-        
-        
-        return 0;
-    }
-
-    //Método que obtiene las horas Dominicales o festiva en un turno
-    private Decimal obtenerFestivaDominical(Datetime fechaI){
-        if(esNocturno && esFestivo){
-            if(esFestivoManana){
-                Decimal diff = 8;
-                return diff;
-            }
-            else{
-                Time medianoche = Time.newInstance(24, 0, 0, 0);
-                DateTime fmn = Datetime.newInstance(fechaI.date().addDays(1), medianoche);
-                DateTime localmn = obtenerFechaLocal(fmn);
-                Decimal diff = obtenerTiempoHoras(fechaI, localmn);
-                
-                return diff;
-                
-            }
-        }            
-        if(!esNocturno && esFestivo){
-            if(cantidadHorasTrabajadas <= 18){
-                //csalazar agrego validación para cuando se tiene que las horas trabajadas
-                //son menores a 8
-                if(cantidadHorasTrabajadas < 8){
-                    return cantidadHorasTrabajadas;
-                }
-                else{
-                    Decimal diff = 8;
-                    return diff;
-                }
-            }else{
-                Decimal diff = cantidadHorasTrabajadas - 18;
-                if(diff > 0){
-                    return diff;    
-                }
-                else{
-                    return 0;
-                }
-            }
-        }
-        return 0;
-    }
-    
-    //Método que obtiene las horas extras festivas nocturnas en un turno
-    private Decimal obtenerExtraFestivaNocturna(Datetime fecha, Datetime fechaF){
-        
-        if(esNocturno){
-            if(!esFestivo && esFestivoManana){
-                DateTime f = Datetime.newInstance(fecha.dateGMT(), inicioRecargoNocturno);
-                DateTime local = obtenerFechaLocal(f);
-                Decimal diffRecargo = obtenerTiempoHoras(fecha, local);
-                Decimal rn = duracionTurno - diffRecargo;
-                Time medianoche = Time.newInstance(24, 0, 0, 0);
-                DateTime fmn = Datetime.newInstance(fecha.date().addDays(1), medianoche);
-                DateTime localmn = obtenerFechaLocal(fmn);
-                Decimal horasSab = obtenerTiempoHoras(fecha, localmn);
-                if(fechaF.hourGmt() > 6){
-                    return horasSab;
-                }else{
-                    decimal he = cantidadHorasTrabajadas - horasSab;
-                    return he;
-                }
-            }else{
-                if(esFestivo && esFestivoManana){
-                    if(fechaF.hourGmt() <= 6){
-                    Decimal diffRecargo = cantidadHorasTrabajadas - 8;
-                    return diffRecargo;
-                    }else{
-                        Time inicioM = Time.newInstance(6, 0, 0, 0);
-                        DateTime fmn = Datetime.newInstance(fechaF.date(), inicioM);
-                        DateTime localmn = obtenerFechaLocal(fmn);
-                        Decimal horasSab = obtenerTiempoHoras(localmn, fechaf);
-                        Decimal diffRecargo = cantidadHorasTrabajadas - 8 - horasSab;
-                        
-                        if(diffRecargo > 0){
-                            return diffRecargo;    
-                        }
-                        else{
-                            return 0;
-                        }
-                    }
-                }
-                
-            }
-        }else{
-            if(!esFestivo){
-                if(esFestivoManana){
-                    if(fechaF.hourGmt() > 21){
-                        DateTime f = Datetime.newInstance(fecha.dateGMT(), inicioRecargoNocturno);
-                        DateTime local = obtenerFechaLocal(f);
-                        Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                        return diffRecargo;
-                    }else{
-                        //Csalazar: 
-                        //Validamos si el día de salida es diferente del de entrada para calcular
-                        //las horas extras del día siguiente en caso de salir en el día festivo.
-                        if(fecha.dayGmt() != fechaF.dayGmt()){
-                            if(fechaF.hourGmt() >= 6 && fechaF.hourGmt() < 18){
-                                // se retorna la diferencia entre las 12 de la noche y las 6 am
-                                return 6;
-                            }
-                        }
-                        else{
-                            return 0;
-                        }
-                        
-                    }
-                }
-            }else{
-                if(!esFestivoManana){
-                    if(fechaF.hourGmt() > 21 && fechaF.hourGmt() <= 24){
-                        DateTime f = Datetime.newInstance(fecha.dateGMT(), inicioRecargoNocturno);
-                        DateTime local = obtenerFechaLocal(f);
-                        Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                        return diffRecargo;
-                    }
-                }
-            }
-        }
-        
-        return 0;
-    }
-
-    //Método que obtiene las horas extras  nocturnas en un turno
-    private Decimal obtenerExtraNocturna(Datetime fecha, Datetime fechaF, string dia){
-        Time medianoche = Time.newInstance(24, 0, 0, 0);
-        DateTime fmn = Datetime.newInstance(fecha.date().addDays(1), medianoche);
-        DateTime localmn = obtenerFechaLocal(fmn);
-        Decimal duracionTemp = duracionTurno;
-        if(fecha.hourGmt() < 12 &&   cantidadHorasTrabajadas > 9 ){
-            duracionTemp = duracionTurno +1;
-        }
-        if(esNocturno){
-            if(!esFestivo){
-                if(esFestivoManana){
-                    DateTime f = Datetime.newInstance(fecha.dateGMT(), inicioRecargoNocturno);
-                    DateTime local = obtenerFechaLocal(f);
-                    Decimal diffRecargo = obtenerTiempoHoras(fecha, local);
-                    Decimal rn = duracionTurno - diffRecargo;
-                    Decimal horasSab = obtenerTiempoHoras(fecha, localmn);
-                    decimal he = horasSab - diffRecargo - rn;
-                    
-                    if(he > 0){
-                        return he;    
-                    }else{
-                        return 0;
-                    }
-                }else{
-                    if(cantidadHorasTrabajadas > duracionTurno){
-                        if(fechaF.hourGmt() > 6){
-                            Time diurno = Time.newInstance(6, 0, 0, 0);
-                            DateTime f = Datetime.newInstance(fechaF.dateGMT(), diurno);
-                            DateTime local = obtenerFechaLocal(f);
-                            Decimal diffRecargo = obtenerTiempoHoras(local, fechaF);
-                            Decimal he = cantidadHorasTrabajadas - duracionTurno - diffRecargo;
-                            if(he > 0){
-                                return he;    
-                            }else{
-                                return 0;
-                            }
-                        }else{
-                            Decimal he = cantidadHorasTrabajadas - duracionTurno;
-                            if(he > 0){
-                                return he;    
-                            }else{
-                                return 0;
-                            }
-                        }
-                    }
-                }   
-            }else{
-                if(!esFestivoManana){
-                    Decimal horasSab = obtenerTiempoHoras(fecha, localmn);
-                    Decimal he = cantidadHorasTrabajadas - horasSab;
-                    if(he > 0){
-                        return he;    
-                    }else{
-                        return 0;
-                    }
-                }
-            }
-        }else{
-            if(!esFestivo && !esFestivoManana){
-                Decimal diffRecargo = 0;
-                if(fechaF.hourGmt() > 21){
-                    DateTime f = Datetime.newInstance(fecha.dateGMT(), inicioRecargoNocturno);
-                    DateTime local = obtenerFechaLocal(f);
-                    diffRecargo = obtenerTiempoHoras(local, fechaF);
-                    
-                } 
-                
-                return diffRecargo;
-                
-            }
-            if(!esFestivo && esFestivoManana){
-                if(fecha.dayGmt() != fechaF.dayGmt()){
-                    //validacion cuadno se obtiene el tiempo entre el regargo nocturo y la media noche
-                    if(fechaF.hourGmt() > 6 && fechaF.hourGmt() < 17){
-                        return 3;
-                    }
-                }
-            }
-        }
-        
-        return 0;
-    }
-    
-    //Método que obtiene las horas de recargo nocturno en un turno
-    private Decimal obtenerRecargoNocturno(Datetime fecha){
-        if(esNocturno){
-            if(!esFestivo){
-                
-                if(fecha.hourGmt() < inicioRecargoNocturno.hour()){
-                    DateTime f = Datetime.newInstance(fecha.dateGMT(), inicioRecargoNocturno);
-                    DateTime local = obtenerFechaLocal(f);
-                    Decimal diffRecargo = obtenerTiempoHoras(fecha, local);
-                    Decimal rn = duracionTurno - diffRecargo;
-                    if(rn > 0){
-                        return rn;    
-                    }else{
-                        return 0;
-                    }
-                }
-            }
-        }else{
-            if(fecha.hourGmt() < 6 ){
-                Decimal diffRecargo = (6 - fecha.hourGmt());
-                
-                if(diffRecargo > 0){
-                    return diffRecargo;    
-                }else{
-                    return 0;
-                }
-            }
-        }
-        return 0;
-    }
     
     /**
     * Método que retorna la fecha local dado un timestamp
@@ -1028,14 +707,6 @@ global class HBT_ImportarRegistroTurnosController {
         Integer offset = UserInfo.getTimezone().getOffset(fechaTemp);
         Datetime local = fechaTemp.addSeconds(offset/1000);
         return local;
-    }
-    
-    private boolean obtenerSiEsNocturno(dateTime fecha){
-        Time nocturno = time.newInstance(inicioHoraNocturna, 00, 00, 00);
-        if (fecha.hourGmt() >= nocturno.hour()){
-            return true;
-        }
-        return false;
     }
     
     private boolean obtenerFestivo(dateTime fecha){
@@ -1053,9 +724,8 @@ global class HBT_ImportarRegistroTurnosController {
      * @param fecha: fecha original
      * @return nombre del día de la semana de fecha
      */
-    /
     private string obtenerDia(dateTime fecha){
-        Datetime dt = DateTime.newInstance(fecha.dateGmt(), Time.newInstance(0, 0, 0, 0));
+        Datetime dt = DateTime.newInstanceGMT(fecha.dateGmt(), Time.newInstance(0, 0, 0, 0));
         String dayOfWeek = dt.format('E');
         
         return dayOfWeek;
