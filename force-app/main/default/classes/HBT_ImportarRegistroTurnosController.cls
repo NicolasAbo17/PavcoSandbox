@@ -175,7 +175,9 @@ global class HBT_ImportarRegistroTurnosController {
                 //Se consultan los Id de los ingresos a actualizar
                 List<HBT_Asociacion_Empleado_Frente__c> empleadosTtmp = new List <HBT_Asociacion_Empleado_Frente__c>(
                     [select Id, Empleado__c, Frente_de_Trabajo__c, Empleado__r.id, Empleado__r.Numero_de_Documento__c, Empleado__r.Tipo__c,
-                     Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c
+                     Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Lunes__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Martes__c,
+                     Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Miercoles__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Jueves__c,
+                     Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Viernes__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c
                      from HBT_Asociacion_Empleado_Frente__c 
                      where Frente_de_Trabajo__r.id =:frenteSelected and Empleado__r.Numero_de_Documento__c  in: idRegistrosModificar]);
                 
@@ -565,18 +567,35 @@ global class HBT_ImportarRegistroTurnosController {
             }
             
             // según el día se asigna la duración del turno
-            string dia = obtenerDia(registro.fechaIngreso);  
-            Decimal duracionTurno = 0;
-            if(dia == 'Sat'){
-                duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c;
-            }else if(dia != 'Sun'){
-                duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno__c;
+            Integer dia = obtenerDia(registro.fechaIngreso);  
+            Decimal duracionTurno;
+            switch on dia {
+                when 1{
+                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Lunes__c;
+                }
+                when 2{
+                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Martes__c;
+                }
+                when 3{
+                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Miercoles__c;
+                }
+                when 4{
+                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Jueves__c;
+                }
+                when 5{
+                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Viernes__c;
+                }
+                when 6{
+                    duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c;
+                }
+                when 7{
+                    duracionTurno = 0;
+                }
+                when else{
+                    mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.ERROR,'No se pudo obtener el día de la semana.'));
+                }
             }
 
-            // se guarda cuantas horas trabajo el empleado en total, y cuáles de esas fueron extra
-            Decimal cantidadHorasTrabajadas = obtenerTiempoHoras(registro.fechaIngreso, registro.fechaSalida);
-            Decimal horasExtraTrabajadas = cantidadHorasTrabajadas - duracionTurno;
-            
             if(registro.esVacio){
                 // caso en que registro esté vacío se guardan todas las horas extras vacías
                 system.debug('se carga jornada normal, vienen horarios en blanco');
@@ -591,95 +610,10 @@ global class HBT_ImportarRegistroTurnosController {
                 turno.Hora_Extra_Diurna__c = 0;
                 turno.Hora_Extra_Festiva_Diurnas__c = 0;
                 listaTurnos.add(turno);
-                system.debug('tunro basico '+ listaTurnos);
+                system.debug('turno basico '+ listaTurnos);
             }else{
-                // se guardan si ese día o el siguiente es festivo
-                string diaManana = obtenerDia(registro.fechaIngreso.addDays(1));
-
-                boolean esFestivoManana = obtenerFestivo(turno.Fecha_Registro__c.addDays(1)) || diaManana == 'Sun';
-                boolean esFestivo = obtenerFestivo(turno.Fecha_Registro__c) || dia=='Sun';
-                
-                system.debug('/***************************************/');
-                system.debug('dia' + dia);
-                system.debug('festivo: '+esFestivo);
-                system.debug('diaManana: ' +diaManana);
-                system.debug('festivo mañana '+esFestivoManana);
-                system.debug('duracion turno: '+duracionTurno);
-                system.debug('cantidad horas trabajadas: '+cantidadHorasTrabajadas);
-                system.debug('/***************************************/');
-
-                // inicializamos todas las horas extra en 0
-                turno.Duracion__c = cantidadHorasTrabajadas;
-                turno.Horas_Recargo_Nocturno__c = 0;
-                turno.Hora_Extra_Nocturna__c = 0;
-                turno.Hora_Extra_Festiva_Nocturna__c = 0;
-                turno.Hora_Festiva_Dominical__c = 0;
-                turno.Hora_Extra_Diurna__c = 0;
-                turno.Hora_Extra_Festiva_Diurnas__c = 0;    
-
-                // hora de inicio para distintos rangos horarios
-                Datetime inicioHoraNocturna = Datetime.newInstanceGMT(registro.fechaIngreso.dateGMT(), time.newInstance(horaNocturna, 00, 00, 00));
-                Datetime inicioHoraDiurna = Datetime.newInstanceGMT(registro.fechaIngreso.dateGMT(), time.newInstance(horaDiurna, 00, 00, 00));
-                Datetime inicioMedianoche = Datetime.newInstanceGMT(registro.fechaIngreso.dateGMT(), time.newInstance(medianoche, 00, 00, 00));
-
-                // referencia del final de turno calculado
-                Datetime finalTurno = registro.fechaIngreso.addMinutes((duracionTurno * 60).intValue());
-                Datetime nuevoFinal;
-
-                // cálculo de horas extras si el día de ingreso es festivo
-                if(esFestivo){
-                    nuevoFinal = registro.fechaSalida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: registro.fechaSalida;
-                    turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(registro.fechaIngreso, nuevoFinal);
-                    horasExtraTrabajadas -= turno.Hora_Festiva_Dominical__c;
-                }
-                else{
-                    // se calcula el recargo nocturno
-                    Decimal diferenciaFinalNocturna = obtenerTiempoHoras(inicioHoraNocturna, finalTurno);   
-                    if(diferenciaFinalNocturna >= 0){
-                        turno.Horas_Recargo_Nocturno__c = diferenciaFinalNocturna;
-                    }
-
-                    // se calculan las horas extra diurnas
-                    if(horasExtraTrabajadas > 0){
-                        nuevoFinal = registro.fechaSalida.getTime() > inicioHoraNocturna.getTime()? inicioHoraNocturna: registro.fechaSalida;
-                        turno.Hora_Extra_Diurna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
-                        horasExtraTrabajadas -= turno.Hora_Extra_Diurna__c;
-                        finalTurno = nuevoFinal;
-                    }
-
-                    // se calculan las horas extra nocturnas
-                    if(horasExtraTrabajadas > 0){
-                        nuevoFinal = registro.fechaSalida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: registro.fechaSalida;
-                        turno.Hora_Extra_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
-                        horasExtraTrabajadas -= turno.Hora_Extra_Nocturna__c;
-                        finalTurno = nuevoFinal;
-                    }
-                }
-
-                // cálculo de horas extra del siguiente día
-                Decimal horasNuevas;
-                if(horasExtraTrabajadas > 0){
-                    nuevoFinal = registro.fechaSalida.getTime() > inicioHoraDiurna.getTime()? inicioHoraDiurna: registro.fechaSalida;
-                    horasNuevas = obtenerTiempoHoras(finalTurno, nuevoFinal);
-                    if(esFestivoManana){
-                        turno.Hora_Extra_Festiva_Nocturna__c += horasNuevas;
-                    }else{
-                        turno.Hora_Extra_Nocturna__c += horasNuevas; 
-                    }
-                    horasExtraTrabajadas -= horasNuevas;
-                    finalTurno = nuevoFinal;
-                }
-
-                if(horasExtraTrabajadas > 0){
-                    horasNuevas = obtenerTiempoHoras(finalTurno, registro.fechaSalida);
-                    if(esFestivoManana){
-                        turno.Hora_Extra_Festiva_Diurnas__c += horasNuevas;
-                    }else{
-                        turno.Hora_Extra_Diurna__c += horasNuevas; 
-                    }
-                    horasExtraTrabajadas -= horasNuevas;
-                    finalTurno = registro.fechaSalida;
-                }
+                // se llama al método que calcula las horas extra
+                turno = calculoHorasExtra(turno, registro.fechaIngreso, registro.fechaSalida, duracionTurno);
 
                 system.debug('turnos: '+turno);
                 listaTurnos.add(turno);
@@ -696,7 +630,150 @@ global class HBT_ImportarRegistroTurnosController {
         fechaInicioFiltro = null;
         csvFileBody = null;
         mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.CONFIRMACION,'Se guardo exitosamente la información.'));
+    }
+
+    /**
+     * Método que calcula las horas extras de un turno según su fecha de ingreso, salida y duración
+     * de su turno de trabajo
+     * @param turno: turno a calcularle las horas extra
+     * @param ingreso: fecha de ingreso del turno
+     * @param salida: fecha de salida del turno
+     * @param duracionTurno: duración del turno normalmente
+     * @return el turno con las horas extras calculadas
+     */
+    public HBT_Registro_Turnos__c calculoHorasExtra(HBT_Registro_Turnos__c turno, Datetime ingreso, Datetime salida, Decimal duracionTurno){
+        // se guardan si ese día o el siguiente es festivo
+        Integer dia = obtenerDia(ingreso);  
+        Integer diaManana = obtenerDia(ingreso.addDays(1));
+
+        boolean esFestivoManana = diaManana == 7 || obtenerFestivo(ingreso.addDays(1));
+        boolean esFestivo = dia == 7|| obtenerFestivo(ingreso) ;
         
+        if(esFestivo){
+            duracionTurno = 0;
+        }
+
+        // se guarda cuantas horas trabajo el empleado en total, y cuáles de esas fueron extra
+        Decimal cantidadHorasTrabajadas = obtenerTiempoHoras(ingreso, salida);
+
+        system.debug('/***************************************/');
+        system.debug('dia: ' + dia);
+        system.debug('festivo: '+esFestivo);
+        system.debug('diaManana: ' +diaManana);
+        system.debug('festivo mañana '+esFestivoManana);
+        system.debug('duracion turno: '+duracionTurno);
+        system.debug('cantidad horas trabajadas: '+cantidadHorasTrabajadas);
+        system.debug('/***************************************/');
+
+        // inicializamos todas las horas extra en 0
+        turno.Duracion__c = cantidadHorasTrabajadas;
+        turno.Horas_Recargo_Nocturno__c = 0;
+        turno.Hora_Extra_Nocturna__c = 0;
+        turno.Hora_Extra_Festiva_Nocturna__c = 0;
+        turno.Hora_Festiva_Dominical__c = 0;
+        turno.Hora_Extra_Diurna__c = 0;
+        turno.Hora_Extra_Festiva_Diurnas__c = 0;    
+
+        // hora de inicio para distintos rangos horarios
+        Datetime inicioHoraNocturna = Datetime.newInstanceGMT(ingreso.dateGMT(), time.newInstance(horaNocturna, 00, 00, 00));
+        Datetime inicioHoraDiurna = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(horaDiurna, 00, 00, 00));
+        Datetime inicioMedianoche = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(medianoche, 00, 00, 00));
+
+        // referencia del final de turno calculado
+        Datetime finalTurno = ingreso.addMinutes((duracionTurno * 60).intValue());
+        Datetime nuevoFinal;
+        Decimal horasNuevas;
+
+        // cálculo de horas extras si el día de ingreso es festivo
+        system.debug(esFestivo);
+        if(esFestivo){
+            if(esFestivoManana){
+                turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(ingreso, salida);
+                finalTurno = salida;
+            }else{
+                nuevoFinal = salida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: salida;
+                turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(ingreso, nuevoFinal);
+                finalTurno = nuevoFinal;
+            }
+
+            system.debug('Horas festivas');
+            system.debug(finalTurno);
+            system.debug(turno.Hora_Festiva_Dominical__c);
+        }
+        else{
+            system.debug('final turno org: '+ finalTurno);
+
+            // se calcula el recargo nocturno
+            horasNuevas = obtenerTiempoHoras(inicioHoraNocturna, finalTurno);   
+            if(horasNuevas >= 0){
+                turno.Horas_Recargo_Nocturno__c = horasNuevas;
+
+                system.debug('Recargo nocturno');
+                system.debug(finalTurno);
+                system.debug(turno.Horas_Recargo_Nocturno__c);
+            }
+
+            // se calculan las horas extra diurnas
+            if(finalTurno.getTime() < inicioHoraNocturna.getTime() && finalTurno.getTime() < salida.getTime()){
+                nuevoFinal = salida.getTime() > inicioHoraNocturna.getTime()? inicioHoraNocturna: salida;
+                turno.Hora_Extra_Diurna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                finalTurno = nuevoFinal;
+
+                system.debug('Extra diurnas 1');
+                system.debug(finalTurno);
+                system.debug(turno.Hora_Extra_Diurna__c);
+
+            }
+
+            // se calculan las horas extra nocturnas
+            if(finalTurno.getTime() < inicioMedianoche.getTime() && finalTurno.getTime() < salida.getTime()){
+                nuevoFinal = salida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: salida;
+                turno.Hora_Extra_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                finalTurno = nuevoFinal;
+
+                system.debug('Extra nocturnas 1');
+                system.debug(finalTurno);
+                system.debug(turno.Hora_Extra_Nocturna__c);
+
+            }
+        }
+
+        // cálculo de horas extra nocturnas del siguiente día
+        if(finalTurno.getTime() < inicioHoraDiurna.getTime() && finalTurno.getTime() < salida.getTime()){
+            nuevoFinal = salida.getTime() > inicioHoraDiurna.getTime()? inicioHoraDiurna: salida;
+            if(esFestivoManana){
+                turno.Hora_Extra_Festiva_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+            }else{
+                turno.Hora_Extra_Nocturna__c += obtenerTiempoHoras(finalTurno, nuevoFinal);
+            }
+            finalTurno = nuevoFinal;
+
+            system.debug('Extra nocturnas 2');
+            system.debug(finalTurno);
+            system.debug(turno.Hora_Extra_Nocturna__c);
+
+            system.debug('Festivo nocturnas');
+            system.debug(turno.Hora_Extra_Festiva_Nocturna__c);
+        }
+
+        // cálculo de horas extra diurnas del siguiente día
+        if(finalTurno.getTime() < salida.getTime()){
+            if(esFestivoManana){
+                turno.Hora_Extra_Festiva_Diurnas__c = obtenerTiempoHoras(finalTurno, salida);
+            }else{
+                turno.Hora_Extra_Diurna__c += obtenerTiempoHoras(finalTurno, salida);
+            }
+            finalTurno = salida;
+
+            system.debug('Extra diurnas 2');
+            system.debug(finalTurno);
+            system.debug(turno.Hora_Extra_Diurna__c);
+
+            system.debug('Festivo diurnas');
+            system.debug(turno.Hora_Extra_Festiva_Diurnas__c);
+        }
+
+        return turno;
     }
     
     /**
@@ -719,16 +796,12 @@ global class HBT_ImportarRegistroTurnosController {
     }
 
     /**
-     * Método que retorna el nombre del día de la semana de una fecha dada
-     * en formato Mon, Tue, ... Sun
+     * Método que retorna el número del día de la semana de una fecha dada
      * @param fecha: fecha original
-     * @return nombre del día de la semana de fecha
+     * @return número del día de la semana de fecha
      */
-    private string obtenerDia(dateTime fecha){
-        Datetime dt = DateTime.newInstanceGMT(fecha.dateGmt(), Time.newInstance(0, 0, 0, 0));
-        String dayOfWeek = dt.format('E');
-        
-        return dayOfWeek;
+    private Integer obtenerDia(dateTime fecha){        
+        return integer.valueof(fecha.format('u'));
     }
     
     private Decimal obtenerTiempoHoras(DateTime fi, dateTime ff){
