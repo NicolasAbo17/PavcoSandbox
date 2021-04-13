@@ -122,9 +122,8 @@ public class HBT_Festivos {
         if (inclusive && fecha.format('E') == diaSemana){
             return fecha;
         }
-        else {
-            fecha = fecha.AddDays(aumento);
-        }
+        
+        fecha = fecha.AddDays(aumento);
         
         while (fecha.format('E') != diaSemana)
             fecha = fecha.AddDays(aumento);
