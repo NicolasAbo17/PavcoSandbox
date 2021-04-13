@@ -117,27 +117,17 @@ public class HBT_Festivos {
     
     private static Datetime SiguienteDiaSemana(string diaSemana, Datetime fecha, Boolean haciaAtras, Boolean inclusive)
     {
+        Integer aumento = haciaAtras? -1: 1;
         
-        if (inclusive)
-        {
-            if (fecha.format('E') == diaSemana)
-            {
-                return fecha;
-            }
+        if (inclusive && fecha.format('E') == diaSemana){
+            return fecha;
         }
-        else
-        {
-            if (haciaAtras)
-                fecha = fecha.AddDays(-1);
-            else
-                fecha = fecha.AddDays(1);
+        else {
+            fecha = fecha.AddDays(aumento);
         }
         
         while (fecha.format('E') != diaSemana)
-            if (haciaAtras)
-            fecha = fecha.AddDays(-1);
-        else
-            fecha = fecha.AddDays(1);
+            fecha = fecha.AddDays(aumento);
        
         return fecha;
     }
