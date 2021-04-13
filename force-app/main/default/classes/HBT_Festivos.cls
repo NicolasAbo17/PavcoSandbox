@@ -2,16 +2,16 @@ public class HBT_Festivos {
 
     public static Map<String, Boolean> DiasFestivos(Integer anio){
         
-        string lunes = Datetime.newinstance(1985, 6, 24).format('E');
-        string jueves = Datetime.newinstance(1985, 6, 27).format('E');
-        string viernes = Datetime.newinstance(1985, 6, 28).format('E');
-        string domingo = Datetime.newinstance(1985, 6, 30).format('E');
+        Integer lunes = 1;
+        Integer jueves = 4;
+        Integer viernes = 5;
+        Integer domingo = 7;
         Datetime pascua = calcularPascua(anio);
         Map<String, Boolean> diasFestivos = new Map<String, Boolean>();
         
         IncluirFecha(diasFestivos, Datetime.newInstance(anio, 1, 1)); //Primero de Enero 
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 1, 6),false, true)); //Reyes magos
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 3, 19),false, true)); //San Jose
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 1, 6, 1, 0, 0),false, true)); //Reyes magos
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 3, 19, 1, 0, 0),false, true)); //San Jose
         IncluirFecha(diasFestivos, SiguienteDiaSemana(domingo, pascua, true, false)); //Domingo de Ramos
         IncluirFecha(diasFestivos, SiguienteDiaSemana(jueves, pascua, true,true)); //Jueves Santo
         IncluirFecha(diasFestivos, SiguienteDiaSemana(viernes, pascua, true,true)); //Viernes Santo
@@ -22,16 +22,16 @@ public class HBT_Festivos {
         IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, pascua,false, true).AddDays(63)); //Corpus Christi
         IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, pascua,false, true).AddDays(70)); //Sagrado Corazón
         
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 6, 30),false, true)); //san Pedro y san Pablo
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 6, 30, 1, 0, 0),false, true)); //san Pedro y san Pablo
         IncluirFecha(diasFestivos, Datetime.newInstance(anio, 7, 20)); //Grito de Independencia
         IncluirFecha(diasFestivos, Datetime.newInstance(anio, 8, 7)); // Batalla de Boyacá
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 8, 15),false, true)); //Asuncion de la virgen
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 10, 12),false, true)); //Día de la Raza
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 8, 15, 1, 0, 0),false, true)); //Asuncion de la virgen
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 10, 12, 1, 0, 0),false, true)); //Día de la Raza
         //IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 10, 12),false, true)); //Todos los Santos
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 11, 1),false, true)); //Independencia de Cartagena
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 11, 11),false, true)); //Independencia de Cartagena
-        IncluirFecha(diasFestivos, Datetime.newInstance(anio, 12, 8)); // Inmaculada Concepción
-        IncluirFecha(diasFestivos, Datetime.newInstance(anio, 12, 25)); // Navidad
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 11, 1, 1, 0, 0),false, true)); //Independencia de Cartagena
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 11, 11, 1, 0, 0),false, true)); //Independencia de Cartagena
+        IncluirFecha(diasFestivos, Datetime.newInstance(anio, 12, 8, 1, 0, 0)); // Inmaculada Concepción
+        IncluirFecha(diasFestivos, Datetime.newInstance(anio, 12, 25, 1, 0, 0)); // Navidad
         
         return diasFestivos;
     }
@@ -39,7 +39,7 @@ public class HBT_Festivos {
     private static void IncluirFecha(Map<String, Boolean> diasFestivos, Datetime fecha)
     {
         //string[] datos = fecha.date().format().split('/');
-        String temp = String.valueOf(fecha);
+        String temp = String.valueOf(fecha.date());
         
   //      system.debug('festivo: '+temp);
         diasFestivos.put(temp, true);     
@@ -115,19 +115,18 @@ public class HBT_Festivos {
     }
     
     
-    private static Datetime SiguienteDiaSemana(string diaSemana, Datetime fecha, Boolean haciaAtras, Boolean inclusive)
+    private static Datetime SiguienteDiaSemana(Integer diaSemana, Datetime fecha, Boolean haciaAtras, Boolean inclusive)
     {
         Integer aumento = haciaAtras? -1: 1;
-        
-        if (inclusive && fecha.format('E') == diaSemana){
+        if (inclusive && Integer.valueOf(fecha.format('u')) == diaSemana){
             return fecha;
         }
         
         fecha = fecha.AddDays(aumento);
         
-        while (fecha.format('E') != diaSemana)
+        while (Integer.valueOf(fecha.format('u')) != diaSemana){
             fecha = fecha.AddDays(aumento);
-       
+        }
         return fecha;
     }
     

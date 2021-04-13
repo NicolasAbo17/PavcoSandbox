@@ -680,7 +680,8 @@ global class HBT_ImportarRegistroTurnosController {
         Datetime inicioMedianoche = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(medianoche, 00, 00, 00));
 
         // referencia del final de turno calculado
-        Datetime finalTurno = ingreso.addMinutes((duracionTurno * 60).intValue());
+        Integer duracionMinutos = (duracionTurno * 60).intValue();
+        Datetime finalTurno = ingreso.addMinutes(duracionMinutos);
         Datetime nuevoFinal;
         Decimal horasNuevas;
 
@@ -787,12 +788,9 @@ global class HBT_ImportarRegistroTurnosController {
     }
     
     private boolean obtenerFestivo(dateTime fecha){
-        String dateFormat = fecha.format('yyyy-MM-dd HH:mm:ss','GTM-5');
-        if(diasFestivos.get(dateFormat) == null){
-            return false;
-        }else{
-            return diasFestivos.get(dateFormat);    
-        }
+        String dateValue = String.valueOf(fecha.dateGMT());
+
+        return diasFestivos.get(dateValue) == null? false: diasFestivos.get(dateValue);
     }
 
     /**

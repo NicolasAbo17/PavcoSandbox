@@ -49,65 +49,42 @@ public class HBT_ImportarTurnosTest {
         //* Prueba de actualización  correcta archivo tipo 1
         String[] csvFileLines;
         Blob csvFileBody;
-        String strRegistroIng = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
-            + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;1-02-2019 4:10:39;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;1-02-2019 22:01:24;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng);
-        String csvAsString = csvFileBody.toString();
-        csvFileLines = csvAsString.split('\n');
-        importData.frenteSelected = ft.id;
-        importData.csvFileBody = csvFileBody;
-        importData.cargarArchivo();
-        importData.guardarRegistros();
-        
-        String strRegistroIng2 = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
+
+        String[] strRegistroIng = new String[9];
+        strRegistroIng[0] = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
+        + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;1-02-2019 4:10:39;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;1-02-2019 22:01:24;Salida';
+        strRegistroIng[1] = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
             + '\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;28-01-2019 18:01:39;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng2);
-        csvAsString = csvFileBody.toString();
-        csvFileLines = csvAsString.split('\n');
-        importData.frenteSelected = ft.id;
-        importData.csvFileBody = csvFileBody;
-        importData.cargarArchivo();
-        importData.guardarRegistros();
-        
-        String strRegistroIng3 = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
+        strRegistroIng[2] = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
             + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;26-01-2019 18:10:39;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;27-01-2019 06:01:24;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng3);
-        csvAsString = csvFileBody.toString();
-        csvFileLines = csvAsString.split('\n');
-        importData.frenteSelected = ft.id;
-        importData.csvFileBody = csvFileBody;
-        importData.cargarArchivo();
-        importData.guardarRegistros();
-        
-        
-        String strRegistroIng4 = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
+        strRegistroIng[3] = 'Núm. Identificación;Nombre;Hora Marca;Tipo Marca\n'
             + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;05-02-2019 17:00:00;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;06-02-2019 6:00:00;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng4);
-        csvAsString = csvFileBody.toString();
-        csvFileLines = csvAsString.split('\n');
-        importData.frenteSelected = ft.id;
-        importData.csvFileBody = csvFileBody;
-        importData.cargarArchivo();
-        importData.guardarRegistros();
-        
-        
-        String strRegistroIng5 = 'Identificación;Nombre;Horario;marca\n'
+        strRegistroIng[4] = 'Identificación;Nombre;Horario;marca\n'
             + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;06-01-2019 17:46:39;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;07-01-2019 05:39:24;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng5);
-        csvAsString = csvFileBody.toString();
-        csvFileLines = csvAsString.split('\n');
-        importData.frenteSelected = ft.id;
-        importData.csvFileBody = csvFileBody;
-        importData.cargarArchivo();
-        importData.guardarRegistros();
+        strRegistroIng[5] = 'Identificación;Nombre;Horario;marca\n'
+            + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;03-02-2019 7:46:39;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;03-02-2019 17:39:24;Salida';
+        strRegistroIng[6] = 'Núm. Identificación,Nombre,Hora Marca,Tipo Marca\n'
+            + ', ARAUJO FERNANDEZ WILVER ANTILIO,2019-02-2 4:10:39,Entrada\n123456, ARAUJO FERNANDEZ WILVER ANTILIO,1-02-2019 22:01:24,Salida';
+        strRegistroIng[7] = 'Núm. Identificación,Nombre,Hora Marca,Tipo Marca\n'
+            + '1234567890; ARAUJO FERNANDEZ WILVER ANTILIO;04-02-2019 05:59:39;\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;04-02-2019 16:00:24;Salida';
+        strRegistroIng[8] = 'Núm. Identificación,Nombre,Hora Marca,Tipo Marca\n';
+
+        String csvAsString;
+        for (Integer i=0; i<5; i++) {
+            csvFileBody = Blob.valueOf(strRegistroIng[i]);
+            csvAsString = csvFileBody.toString();
+            csvFileLines = csvAsString.split('\n');
+            importData.frenteSelected = ft.id;
+            importData.csvFileBody = csvFileBody;
+            importData.cargarArchivo();
+            importData.guardarRegistros();
+        }
+
         importData.getArchivosCargados();
-        
         importData.eliminarCargue();
         importData.generarArchivo();
         
-        String strRegistroIng6 = 'Identificación;Nombre;Horario;marca\n'
-            + '123456; ARAUJO FERNANDEZ WILVER ANTILIO;03-02-2019 7:46:39;Entrada\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;03-02-2019 17:39:24;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng6);
+        csvFileBody = Blob.valueOf(strRegistroIng[5]);
         csvAsString = csvFileBody.toString();
         csvFileLines = csvAsString.split('\n');
         importData.frenteSelected = ft.id;
@@ -116,21 +93,16 @@ public class HBT_ImportarTurnosTest {
         importData.guardarRegistros();
         importData.getArchivosCargados();
         
-        String strRegistroIng7 = 'Núm. Identificación,Nombre,Hora Marca,Tipo Marca\n'
-            + ', ARAUJO FERNANDEZ WILVER ANTILIO,2019-02-2 4:10:39,Entrada\n123456, ARAUJO FERNANDEZ WILVER ANTILIO,1-02-2019 22:01:24,Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng7);
+        csvFileBody = Blob.valueOf(strRegistroIng[6]);
         csvAsString = csvFileBody.toString();
         csvFileLines = csvAsString.split('\n');
         importData.frenteSelected = ft.id;
         importData.csvFileBody = csvFileBody;
         importData.cargarArchivo();
         
-        
         HBT_ImportarRegistroTurnosController importData2 = new HBT_ImportarRegistroTurnosController();
         
-        String strRegistroIng8 = 'Núm. Identificación,Nombre,Hora Marca,Tipo Marca\n'
-            + '1234567890; ARAUJO FERNANDEZ WILVER ANTILIO;04-02-2019 05:59:39;\n123456; ARAUJO FERNANDEZ WILVER ANTILIO;04-02-2019 16:00:24;Salida';
-        csvFileBody = Blob.valueOf(strRegistroIng8);
+        csvFileBody = Blob.valueOf(strRegistroIng[7]);
         csvAsString = csvFileBody.toString();
         csvFileLines = csvAsString.split('\n');
         importData2.frenteSelected = ft.id;
@@ -139,8 +111,7 @@ public class HBT_ImportarTurnosTest {
         
         HBT_ImportarRegistroTurnosController importData3 = new HBT_ImportarRegistroTurnosController();
         
-        String strRegistroIng9 = 'Núm. Identificación,Nombre,Hora Marca,Tipo Marca\n';
-        csvFileBody = Blob.valueOf(strRegistroIng9);
+        csvFileBody = Blob.valueOf(strRegistroIng[8]);
         csvAsString = csvFileBody.toString();
         csvFileLines = csvAsString.split('\n');
         importData3.frenteSelected = ft.id;
