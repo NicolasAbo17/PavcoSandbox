@@ -641,7 +641,7 @@ global class HBT_ImportarRegistroTurnosController {
      * @param duracionTurno: duración del turno normalmente
      * @return el turno con las horas extras calculadas
      */
-    public HBT_Registro_Turnos__c calculoHorasExtra(HBT_Registro_Turnos__c turno, Datetime ingreso, Datetime salida, Decimal duracionTurno){
+    private HBT_Registro_Turnos__c calculoHorasExtra(HBT_Registro_Turnos__c turno, Datetime ingreso, Datetime salida, Decimal duracionTurno){
         // se guardan si ese día o el siguiente es festivo
         Integer dia = obtenerDia(ingreso);  
         Integer diaManana = obtenerDia(ingreso.addDays(1));
@@ -695,22 +695,12 @@ global class HBT_ImportarRegistroTurnosController {
                 turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(ingreso, nuevoFinal);
                 finalTurno = nuevoFinal;
             }
-
-            system.debug('Horas festivas');
-            system.debug(finalTurno);
-            system.debug(turno.Hora_Festiva_Dominical__c);
         }
         else{
-            system.debug('final turno org: '+ finalTurno);
-
             // se calcula el recargo nocturno
             horasNuevas = obtenerTiempoHoras(inicioHoraNocturna, finalTurno);   
             if(horasNuevas >= 0){
                 turno.Horas_Recargo_Nocturno__c = horasNuevas;
-
-                system.debug('Recargo nocturno');
-                system.debug(finalTurno);
-                system.debug(turno.Horas_Recargo_Nocturno__c);
             }
 
             // se calculan las horas extra diurnas
@@ -718,11 +708,6 @@ global class HBT_ImportarRegistroTurnosController {
                 nuevoFinal = salida.getTime() > inicioHoraNocturna.getTime()? inicioHoraNocturna: salida;
                 turno.Hora_Extra_Diurna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
                 finalTurno = nuevoFinal;
-
-                system.debug('Extra diurnas 1');
-                system.debug(finalTurno);
-                system.debug(turno.Hora_Extra_Diurna__c);
-
             }
 
             // se calculan las horas extra nocturnas
@@ -730,11 +715,6 @@ global class HBT_ImportarRegistroTurnosController {
                 nuevoFinal = salida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: salida;
                 turno.Hora_Extra_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
                 finalTurno = nuevoFinal;
-
-                system.debug('Extra nocturnas 1');
-                system.debug(finalTurno);
-                system.debug(turno.Hora_Extra_Nocturna__c);
-
             }
         }
 
@@ -747,13 +727,6 @@ global class HBT_ImportarRegistroTurnosController {
                 turno.Hora_Extra_Nocturna__c += obtenerTiempoHoras(finalTurno, nuevoFinal);
             }
             finalTurno = nuevoFinal;
-
-            system.debug('Extra nocturnas 2');
-            system.debug(finalTurno);
-            system.debug(turno.Hora_Extra_Nocturna__c);
-
-            system.debug('Festivo nocturnas');
-            system.debug(turno.Hora_Extra_Festiva_Nocturna__c);
         }
 
         // cálculo de horas extra diurnas del siguiente día
@@ -763,15 +736,7 @@ global class HBT_ImportarRegistroTurnosController {
             }else{
                 turno.Hora_Extra_Diurna__c += obtenerTiempoHoras(finalTurno, salida);
             }
-            finalTurno = salida;
-
-            system.debug('Extra diurnas 2');
-            system.debug(finalTurno);
-            system.debug(turno.Hora_Extra_Diurna__c);
-
-            system.debug('Festivo diurnas');
-            system.debug(turno.Hora_Extra_Festiva_Diurnas__c);
-        }
+            finalTurno = salida;        }
 
         return turno;
     }
