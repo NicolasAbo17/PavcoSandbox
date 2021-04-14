@@ -680,8 +680,7 @@ global class HBT_ImportarRegistroTurnosController {
         Datetime inicioMedianoche = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(medianoche, 00, 00, 00));
 
         // referencia del final de turno calculado
-        Integer duracionMinutos = (duracionTurno * 60).intValue();
-        Datetime finalTurno = ingreso.addMinutes(duracionMinutos);
+        Datetime finalTurno = ingreso.addMinutes((duracionTurno * 60).intValue());
         Datetime nuevoFinal;
         Decimal horasNuevas;
 
