@@ -33,7 +33,8 @@ global class HBT_ImportarRegistroTurnosController {
     // soporte horas fijas
     private static Integer horaNocturna = 21;
     private static Integer horaDiurna = 6;
-    private static Integer medianoche = 0;
+    private static Integer duracionFestivos = 8;
+    private static Integer minimoAlmuerzo = 8;
     
     //método constructor
     public HBT_ImportarRegistroTurnosController(){
@@ -69,6 +70,7 @@ global class HBT_ImportarRegistroTurnosController {
         listaRegistrosTemp = new List<registroAlmacenar>();
         listaRegistrosTemp.clear();
         listaRegistros.clear();
+        system.debug('inicia carga del archivo');
         
         if(fechaFinFiltro != null && fechaInicioFiltro != null){
             if(fechaFinFiltro >= fechaInicioFiltro){
@@ -177,7 +179,8 @@ global class HBT_ImportarRegistroTurnosController {
                     [select Id, Empleado__c, Frente_de_Trabajo__c, Empleado__r.id, Empleado__r.Numero_de_Documento__c, Empleado__r.Tipo__c,
                      Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Lunes__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Martes__c,
                      Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Miercoles__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Jueves__c,
-                     Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Viernes__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c
+                     Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Viernes__c, Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c,
+                     Frente_de_Trabajo__r.turno__r.Tiempo_almuerzo_horas__c
                      from HBT_Asociacion_Empleado_Frente__c 
                      where Frente_de_Trabajo__r.id =:frenteSelected and Empleado__r.Numero_de_Documento__c  in: idRegistrosModificar]);
                 
@@ -324,13 +327,11 @@ global class HBT_ImportarRegistroTurnosController {
     private List<registroAlmacenar> obtenerListaFinal(List<Map<string,List<registroAlmacenar>>> datosLista){
         
         List<registroAlmacenar> listaFinal = new List<registroAlmacenar>();
-        registroAlmacenar registroagrupado = new registroAlmacenar();
-        
+        system.debug('NUEVO METODO');
         for(Map<string,List<registroAlmacenar>> maptemp : datosLista){
             
             Set <String> listanIdentificacion = new Set<String>();
             listanIdentificacion = maptemp.keyset();
-            Map<string,List<registroAlmacenar>> mapaOrdenado = new Map<string,List<registroAlmacenar>>();
             
             Integer cantidadDiasCarga = (fechaInicioFiltro).daysBetween(fechaFinFiltro);
             
@@ -338,72 +339,86 @@ global class HBT_ImportarRegistroTurnosController {
             
             for(string key : listanIdentificacion){
                 List<registroAlmacenar> temp = maptemp.get(key);
-                for(integer i=0; i<=cantidadDiasCarga; i++ ){
-                    Date dateTemp = fechaInicioFiltro.addDays(i);
-                    registroAlmacenar turno = buscarTurnoinicioFin(dateTemp, temp);
-                    if(turno != null){
-                        if(turno.fechaIngreso == null || turno.fechaSalida == null){
-                            turno.esVacio= true;
-                        }else{
-                            turno.esVacio= false;
+                if(temp.size() > 0){
+                    Integer i = 0;
+                    registroAlmacenar actual;
+                    // actual se vuelve la primera fecha de entrada en el rango
+                    while(i<temp.size()){
+                        actual = temp[i];
+                        system.debug('Actual: ' + actual);
+                        system.debug('Diferencia: ' + actual.fechaIngreso.dateGMT().daysBetween(fechaInicioFiltro));
+                        if(fechaInicioFiltro.daysBetween(actual.fechaIngreso.dateGMT()) >= 0
+                        && actual.marca.equals('Entrada')){
+                            i++;
+                            break;
                         }
+                        i++;
+                    }
+
+                    registroAlmacenar turno;
+                    Datetime fechaInicio = actual.fechaIngreso;
+                    Datetime diaAnterior = null;
+                    
+                    while(i<temp.size()){
+                        actual = temp[i];
+                        system.debug('Actual: ' + actual);
+                        if(fechaFinFiltro.daysBetween(actual.fechaIngreso.dateGmt()) > 0 && actual.marca.equals('Salida')){
+                            break;
+                        }
+
+                        switch on actual.marca {
+                            when 'Salida' {
+                                if(fechaInicio != null){
+                                    turno = new registroAlmacenar();
+                                    turno.identificacion = actual.identificacion;
+                                    turno.fechaIngreso = fechaInicio;
+                                    turno.fechaSalida = actual.fechaIngreso;
+                                    turno.esVacio= false;
+
+                                    system.debug('informacion procesada para cada turno: '+turno);  
+                                    listaFinal.add(turno);
+
+                                    diaAnterior = fechaInicio;
+                                    fechaInicio = null;
+                                }
+                            }
+                            when 'Entrada' {
+                                if(fechaInicio == null ){
+                                    if(diaAnterior == null || !actual.fechaIngreso.isSameDay(diaAnterior)){
+                                        fechaInicio = actual.fechaIngreso;
+                                    }
+                                }
+                                else if(!fechaInicio.isSameDay(actual.fechaIngreso)){
+                                    turno = new registroAlmacenar();
+                                    turno.identificacion = actual.identificacion;
+                                    turno.fechaIngreso = fechaInicio;
+                                    turno.fechaSalida = null;
+                                    turno.esVacio= true;
+
+                                    system.debug('informacion procesada para cada turno: '+turno);  
+                                    listaFinal.add(turno);
+                                    fechaInicio = actual.fechaIngreso;
+                                }else{
+                                    fechaInicio = actual.fechaIngreso;
+                                }
+                            }
+                        }
+                        i++;
+                    }
+
+                    if(fechaInicio != null && (diaAnterior == null || !fechaInicio.isSameDay(diaAnterior)) ){
+                        turno = new registroAlmacenar();
+                        turno.identificacion = actual.identificacion;
+                        turno.fechaIngreso = fechaInicio;
+                        turno.fechaSalida = null;
+                        turno.esVacio= true;
+                        system.debug('informacion procesada para cada turno: '+turno);  
                         listaFinal.add(turno);
                     }
-                    system.debug('informacion procesada para cada turno: '+turno);  
                 }
             }
         }
         return listaFinal;
-    }
-
-    //metodo que procesa y retorna la informacion de turno para cada empleado
-    private registroAlmacenar buscarTurnoinicioFin(Date dateTemp, List<registroAlmacenar> datos){
-        Date inicio = dateTemp;
-        Date fin = dateTemp;
-        DateTime inicioDT = null;
-        DateTime finDT = null;
-        registroAlmacenar turno = new registroAlmacenar();
-        
-        for(registroAlmacenar registro : datos){
-            turno.identificacion= registro.identificacion;
-            if(registro.marca == 'Entrada' && registro.fechaIngreso.dateGMT() == inicio){
-                if(inicioDT == null){
-                    inicioDT = registro.fechaIngreso;
-                    if(inicioDT.hourGmt() >= 13){
-                        fin = dateTemp.addDays(1);
-                    }
-                    break;
-                }
-            }
-        }
-       
-        for(registroAlmacenar registro : datos){
-            if(registro.marca == 'Salida' && registro.fechaIngreso.dateGMT() == fin){
-                if(inicioDT != null && finDT == null){
-                    if(inicioDT.hourGmt() >= 13){
-                        if(registro.fechaIngreso.hourGmt() < 13){
-                            finDT = registro.fechaIngreso;
-                            break;
-                        }                    
-                    }else{
-                        
-                        if(registro.fechaIngreso.hourGmt() >= 13){
-                            
-                            finDT = registro.fechaIngreso;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        
-        if(inicioDT!=null){
-            turno.fechaIngreso = inicioDT;
-            turno.fechaSalida = finDT;
-            return turno;
-        }else{
-            return null;
-        }
     }
     
     //Método encargado de redondear las horas de entrada y salida de los empleados
@@ -531,7 +546,7 @@ global class HBT_ImportarRegistroTurnosController {
      * Método que realiza el calculo y almacenamiento de las horas extras de los turnos reportados
      */
     public void guardarRegistros(){
-        system.debug('nombreArchivo '+nombreArchivo);
+        system.debug('nombreArchivo PRUEBA'+nombreArchivo);
         // creacion nombre archvico
         HBT_Historico_Cargue_Archivos__c historico = new HBT_Historico_Cargue_Archivos__c();
         historico.nombre_archivo__c	 = nombreArchivo + '/' +obtenerFechaLocal(Datetime.now());
@@ -589,11 +604,15 @@ global class HBT_ImportarRegistroTurnosController {
                     duracionTurno = empleadosTemp.Frente_de_Trabajo__r.turno__r.Cantidad_Horas_Turno_Sabado__c;
                 }
                 when 7{
-                    duracionTurno = 0;
+                    duracionTurno = duracionFestivos;
                 }
                 when else{
+                    duracionTurno = 0;
                     mensajesError.add(new HBT_MensajesPagina(HBT_MensajesPagina.ERROR,'No se pudo obtener el día de la semana.'));
                 }
+            }
+            if(duracionTurno == null){
+                duracionTurno = 0;
             }
 
             if(registro.esVacio){
@@ -613,7 +632,7 @@ global class HBT_ImportarRegistroTurnosController {
                 system.debug('turno basico '+ listaTurnos);
             }else{
                 // se llama al método que calcula las horas extra
-                turno = calculoHorasExtra(turno, registro.fechaIngreso, registro.fechaSalida, duracionTurno);
+                turno = calculoHorasExtra(turno, registro.fechaIngreso, registro.fechaSalida, duracionTurno, empleadosTemp.Frente_de_Trabajo__r.turno__r.Tiempo_almuerzo_horas__c);
 
                 system.debug('turnos: '+turno);
                 listaTurnos.add(turno);
@@ -641,20 +660,24 @@ global class HBT_ImportarRegistroTurnosController {
      * @param duracionTurno: duración del turno normalmente
      * @return el turno con las horas extras calculadas
      */
-    private HBT_Registro_Turnos__c calculoHorasExtra(HBT_Registro_Turnos__c turno, Datetime ingreso, Datetime salida, Decimal duracionTurno){
+    public HBT_Registro_Turnos__c calculoHorasExtra(HBT_Registro_Turnos__c turno, Datetime ingreso, Datetime salida, Decimal duracionTurno, Decimal almuerzo){
         // se guardan si ese día o el siguiente es festivo
         Integer dia = obtenerDia(ingreso);  
         Integer diaManana = obtenerDia(ingreso.addDays(1));
 
         boolean esFestivoManana = diaManana == 7 || obtenerFestivo(ingreso.addDays(1));
         boolean esFestivo = dia == 7|| obtenerFestivo(ingreso) ;
-        
-        if(esFestivo){
-            duracionTurno = 0;
-        }
 
         // se guarda cuantas horas trabajo el empleado en total, y cuáles de esas fueron extra
         Decimal cantidadHorasTrabajadas = obtenerTiempoHoras(ingreso, salida);
+
+        if(cantidadHorasTrabajadas >= minimoAlmuerzo){
+            duracionTurno += almuerzo;	
+        }
+
+        if(esFestivo){
+            duracionTurno = duracionFestivos;
+        }
 
         system.debug('/***************************************/');
         system.debug('dia: ' + dia);
@@ -677,66 +700,147 @@ global class HBT_ImportarRegistroTurnosController {
         // hora de inicio para distintos rangos horarios
         Datetime inicioHoraNocturna = Datetime.newInstanceGMT(ingreso.dateGMT(), time.newInstance(horaNocturna, 00, 00, 00));
         Datetime inicioHoraDiurna = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(horaDiurna, 00, 00, 00));
-        Datetime inicioMedianoche = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(medianoche, 00, 00, 00));
+        Datetime inicioMedianoche = Datetime.newInstanceGMT(ingreso.dateGMT().addDays(1), time.newInstance(00, 00, 00, 00));
 
         // referencia del final de turno calculado
         Datetime finalTurno = ingreso.addMinutes((duracionTurno * 60).intValue());
+        if(finalTurno.getTime() > salida.getTime()){
+            finalTurno = salida;
+        }
         Datetime nuevoFinal;
-        Decimal horasNuevas;
+        Decimal horasNuevas = 0;
 
         // cálculo de horas extras si el día de ingreso es festivo
         system.debug(esFestivo);
         if(esFestivo){
-            if(esFestivoManana){
-                turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(ingreso, salida);
-                finalTurno = salida;
-            }else{
-                nuevoFinal = salida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: salida;
-                turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(ingreso, nuevoFinal);
-                finalTurno = nuevoFinal;
+            if(!esFestivoManana){
+                finalTurno = finalTurno.getTime() > inicioMedianoche.getTime()? inicioMedianoche: finalTurno;
             }
+            turno.Hora_Festiva_Dominical__c = obtenerTiempoHoras(ingreso, finalTurno);
+
+            if(finalTurno.getTime() >= salida.getTime()){
+                return turno;
+            }
+
+            // se calculan las horas extra diurnas
+            if(finalTurno.getTime() < inicioHoraNocturna.getTime()){
+                nuevoFinal = salida.getTime() > inicioHoraNocturna.getTime()? inicioHoraNocturna: salida;
+                turno.Hora_Extra_Festiva_Diurnas__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                finalTurno = nuevoFinal;
+    
+                system.debug('Extra diurnas 1');
+                system.debug(finalTurno);
+                system.debug(turno.Hora_Extra_Diurna__c);
+            }
+    
+            if(finalTurno.getTime() >= salida.getTime()){
+                return turno;
+            }
+    
+            // se calculan las horas extra nocturnas
+            if(finalTurno.getTime() < inicioMedianoche.getTime()){
+                nuevoFinal = salida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: salida;
+                turno.Hora_Extra_Festiva_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                finalTurno = nuevoFinal;
+    
+                system.debug('Extra nocturnas 1');
+                system.debug(finalTurno);
+                system.debug(turno.Hora_Extra_Nocturna__c);
+    
+            }    
+
+            if(finalTurno.getTime() >= salida.getTime()){
+                return turno;
+            }
+
+            system.debug('Horas festivas');
+            system.debug(finalTurno);
+            system.debug(turno.Hora_Festiva_Dominical__c);
         }
         else{
+            system.debug('final turno org: '+ finalTurno);
+
             // se calcula el recargo nocturno
             horasNuevas = obtenerTiempoHoras(inicioHoraNocturna, finalTurno);   
             if(horasNuevas >= 0){
                 turno.Horas_Recargo_Nocturno__c = horasNuevas;
+    
+                system.debug('Recargo nocturno');
+                system.debug(finalTurno);
+                system.debug(turno.Horas_Recargo_Nocturno__c);
             }
-
+    
             // se calculan las horas extra diurnas
-            if(finalTurno.getTime() < inicioHoraNocturna.getTime() && finalTurno.getTime() < salida.getTime()){
+            if(finalTurno.getTime() < inicioHoraNocturna.getTime()){
                 nuevoFinal = salida.getTime() > inicioHoraNocturna.getTime()? inicioHoraNocturna: salida;
                 turno.Hora_Extra_Diurna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
                 finalTurno = nuevoFinal;
+    
+                system.debug('Extra diurnas 1');
+                system.debug(finalTurno);
+                system.debug(turno.Hora_Extra_Diurna__c);
             }
-
+    
+            if(finalTurno.getTime() >= salida.getTime()){
+                return turno;
+            }
+    
             // se calculan las horas extra nocturnas
-            if(finalTurno.getTime() < inicioMedianoche.getTime() && finalTurno.getTime() < salida.getTime()){
+            if(finalTurno.getTime() < inicioMedianoche.getTime()){
                 nuevoFinal = salida.getTime() > inicioMedianoche.getTime()? inicioMedianoche: salida;
                 turno.Hora_Extra_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
                 finalTurno = nuevoFinal;
+    
+                system.debug('Extra nocturnas 1');
+                system.debug(finalTurno);
+                system.debug(turno.Hora_Extra_Nocturna__c);
+    
+            }    
+
+            if(finalTurno.getTime() >= salida.getTime()){
+                return turno;
             }
         }
-
+        
+        
         // cálculo de horas extra nocturnas del siguiente día
-        if(finalTurno.getTime() < inicioHoraDiurna.getTime() && finalTurno.getTime() < salida.getTime()){
+        if(finalTurno.getTime() < inicioHoraDiurna.getTime()){
             nuevoFinal = salida.getTime() > inicioHoraDiurna.getTime()? inicioHoraDiurna: salida;
             if(esFestivoManana){
-                turno.Hora_Extra_Festiva_Nocturna__c = obtenerTiempoHoras(finalTurno, nuevoFinal);
+                turno.Hora_Extra_Festiva_Nocturna__c += obtenerTiempoHoras(finalTurno, nuevoFinal);
             }else{
                 turno.Hora_Extra_Nocturna__c += obtenerTiempoHoras(finalTurno, nuevoFinal);
             }
             finalTurno = nuevoFinal;
+
+            system.debug('Extra nocturnas 2');
+            system.debug(finalTurno);
+            system.debug(turno.Hora_Extra_Nocturna__c);
+
+            system.debug('Festivo nocturnas');
+            system.debug(turno.Hora_Extra_Festiva_Nocturna__c);
+        }
+
+        if(finalTurno.getTime() >= salida.getTime()){
+            return turno;
         }
 
         // cálculo de horas extra diurnas del siguiente día
-        if(finalTurno.getTime() < salida.getTime()){
+        if(finalTurno.getTime() >= salida.getTime()){
             if(esFestivoManana){
-                turno.Hora_Extra_Festiva_Diurnas__c = obtenerTiempoHoras(finalTurno, salida);
+                turno.Hora_Extra_Festiva_Diurnas__c += obtenerTiempoHoras(finalTurno, salida);
             }else{
                 turno.Hora_Extra_Diurna__c += obtenerTiempoHoras(finalTurno, salida);
             }
-            finalTurno = salida;        }
+            finalTurno = salida;
+
+            system.debug('Extra diurnas 2');
+            system.debug(finalTurno);
+            system.debug(turno.Hora_Extra_Diurna__c);
+
+            system.debug('Festivo diurnas');
+            system.debug(turno.Hora_Extra_Festiva_Diurnas__c);
+        }
 
         return turno;
     }
@@ -853,8 +957,8 @@ global class HBT_ImportarRegistroTurnosController {
         // Implement the compareTo() method
         global Integer compareTo(Object compareTo) {
             registroAlmacenar compareToEmp = (registroAlmacenar)compareTo;
-            if (fechaIngreso == compareToEmp.fechaIngreso) return 0;
-            if (fechaIngreso > compareToEmp.fechaIngreso) return 1;
+            if (fechaIngreso.getTime() == compareToEmp.fechaIngreso.getTime()) return 0;
+            if (fechaIngreso.getTime() > compareToEmp.fechaIngreso.getTime()) return 1;
             return -1;        
         }
     }

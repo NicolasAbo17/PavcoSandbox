@@ -22,7 +22,7 @@ public class HBT_Festivos {
         IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, pascua,false, true).AddDays(63)); //Corpus Christi
         IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, pascua,false, true).AddDays(70)); //Sagrado Corazón
         
-        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 6, 30, 1, 0, 0),false, true)); //san Pedro y san Pablo
+        IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 6, 29, 1, 0, 0),false, true)); //san Pedro y san Pablo
         IncluirFecha(diasFestivos, Datetime.newInstance(anio, 7, 20)); //Grito de Independencia
         IncluirFecha(diasFestivos, Datetime.newInstance(anio, 8, 7)); // Batalla de Boyacá
         IncluirFecha(diasFestivos, SiguienteDiaSemana(lunes, Datetime.newInstance(anio, 8, 15, 1, 0, 0),false, true)); //Asuncion de la virgen
@@ -51,7 +51,6 @@ public class HBT_Festivos {
         integer a, b, c, d, e;
         integer m = 24;
         integer n = 5;
-        
         
         if (Anio >= 1583 && Anio <= 1699)
         {

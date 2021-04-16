@@ -18,7 +18,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -136,7 +140,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -223,7 +231,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -301,7 +313,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -368,7 +384,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -441,7 +461,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -516,7 +540,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -593,7 +621,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
                 
@@ -655,7 +687,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
                 
@@ -702,7 +738,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
                 
@@ -744,7 +784,11 @@ public class HBT_ImportarTurnosTest {
         //Se crea un turno ejemplo
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
 
@@ -781,7 +825,11 @@ public class HBT_ImportarTurnosTest {
         //Se crea un turno ejemplo
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
 
@@ -818,7 +866,11 @@ public class HBT_ImportarTurnosTest {
         //Se crea un turno ejemplo
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
 
@@ -855,7 +907,11 @@ public class HBT_ImportarTurnosTest {
         //Se crea un turno ejemplo
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
 
@@ -892,7 +948,11 @@ public class HBT_ImportarTurnosTest {
         //Se crea un turno ejemplo
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
 
@@ -930,7 +990,11 @@ public class HBT_ImportarTurnosTest {
         //Se crea un turno ejemplo
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
 
@@ -973,7 +1037,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
@@ -1032,7 +1100,11 @@ public class HBT_ImportarTurnosTest {
         
         HBT_Turno__c t = new HBT_Turno__c();
         t.Name ='turno 1';
-        t.Cantidad_Horas_Turno__c = 8.5;
+        t.Cantidad_Horas_Turno_Lunes__c = 8.5;
+        t.Cantidad_Horas_Turno_Martes__c = 8.5;
+        t.Cantidad_Horas_Turno_Miercoles__c = 8.5;
+        t.Cantidad_Horas_Turno_Jueves__c = 8.5;
+        t.Cantidad_Horas_Turno_Viernes__c = 8.5;
         t.Cantidad_Horas_Turno_Sabado__c = 5.5;
         insert t;
         
